@@ -1,0 +1,18 @@
+version: '3.8'
+
+# Development overrides
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+      - backend_venv:/app/.venv
+    environment:
+      - PYTHONPATH=/app
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  backend_venv:
