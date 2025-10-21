@@ -3,8 +3,9 @@
 An intelligent ChatKit-powered scheduling system for academic course timetabling and teacher assignment. This project demonstrates a **dual-backend architecture** supporting both OpenAI Agents and LangGraph frameworks with perfect symmetry.
 
 ## 🎯 What's Inside
-- **Dual Backend**: FastAPI servers with OpenAI Agents OR LangGraph implementation
-- **ChatKit Integration**: React UI with real-time streaming responses
+- **🚀 LangGraph-ChatKit Adapter**: Revolutionary bridge enabling LangGraph agents to work seamlessly with ChatKit UI
+- **Dual Backend**: FastAPI servers with OpenAI Agents OR LangGraph implementation  
+- **ChatKit Integration**: React UI with real-time streaming, progress indicators, and rich formatting
 - **Smart Scheduling**: OR-Tools optimization for workload balancing
 - **Teacher Management**: Assign courses, resolve conflicts, optimize loads
 - **Clean Architecture**: Framework-agnostic business logic with symmetric implementations
@@ -99,7 +100,21 @@ export AGENT_BACKEND=openai
 
 Both implementations provide identical functionality and responses.
 
-## 📚 Documentation
+## � Key Innovation: LangGraph-ChatKit Adapter
+
+The **LangGraph-ChatKit Adapter** is the core technical achievement that enables LangGraph agents to work seamlessly with OpenAI's ChatKit interface. This adapter:
+
+- **🔄 Protocol Translation**: Converts LangGraph streaming events to ChatKit's ThreadStreamEvent format in real-time
+- **✨ Rich UI Features**: Provides progress indicators, tool execution feedback, and formatted results
+- **📱 Visual Excellence**: Supports icons, markdown rendering, and real-time text streaming
+- **🛡️ Error Handling**: Graceful error display with appropriate visual cues
+- **🔧 Extensible Design**: Easy to add new tools and custom formatting
+
+**📖 Deep Dive Documentation:**
+- **[LangGraph-ChatKit Adapter Protocol](./CHATKIT_ADAPTER_PROTOCOL.md)** - Complete protocol specification and visual components
+- **[Technical Implementation Guide](./TECHNICAL_IMPLEMENTATION.md)** - Implementation details, patterns, and extension points
+
+## �📚 Documentation
 
 - **[Architecture & Implementation Guide](./backend/ARCHITECTURE.md)** - Complete system design, framework comparison, and technical details
 - **[Docker Setup](./DOCKER_README.md)** - Container deployment guide
