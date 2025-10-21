@@ -22,7 +22,7 @@ class LangGraphChatKitAdapter:
 ```
 User Input
     ↓
-[ChatKit UI] 
+[ChatKit UI]
     ↓ (HTTP POST)
 [FastAPI Endpoint]
     ↓ (user_message, thread_id)
@@ -59,10 +59,10 @@ if chunk_type == "text":
     if content:
         # Accumulate for final persistence
         full_response_parts.append(content)
-        
+
         # Stream immediately to UI
         yield AssistantMessageContentPartTextDelta(
-            content_index=0, 
+            content_index=0,
             delta=content
         )
 ```
@@ -78,7 +78,7 @@ if chunk_type == "text":
 elif chunk_type == "tool_call_start":
     tool_name = chunk.get("tool_name", "")
     yield ProgressUpdateEvent(
-        text=f"🔧 Using tool: {tool_name}...", 
+        text=f"🔧 Using tool: {tool_name}...",
         icon="bolt"
     )
 ```
@@ -99,7 +99,7 @@ elif chunk_type == "tool_result":
 
     # Base message
     result_text = result.get("message", "")
-    
+
     # Tool-specific enhancement
     if tool_name == "show_schedule_overview":
         teachers = result.get("teachers", {})
@@ -111,23 +111,23 @@ elif chunk_type == "tool_result":
                     f"{data['max_load']} ({data['utilization']})"
                 )
             result_text += "\\n\\n**Teacher Workloads:**\\n" + "\\n".join(teacher_summary)
-    
+
     elif tool_name == "show_load_distribution":
         loads = result.get("loads", {})
         load_summary = "\\n".join([
             f"- **{name}**: {load:.1f}h" for name, load in loads.items()
         ])
         result_text = f"**Teaching Load Distribution:**\\n{load_summary}"
-        
+
         if "histogram_path" in result:
             result_text += "\\n\\n*Note: Load distribution histogram available*"
-    
+
     # Add to accumulating response
     full_response_parts.append(f"\\n\\n{result_text}")
-    
+
     # Show progress update
     yield ProgressUpdateEvent(
-        text=f"✅ {tool_name}: {result_text}", 
+        text=f"✅ {tool_name}: {result_text}",
         icon="sparkle"
     )
 ```
@@ -169,7 +169,7 @@ elif chunk_type == "error":
     error_msg = chunk.get("content", "Unknown error")
     full_response_parts.append(f"\\n\\n❌ Error: {error_msg}")
     yield ProgressUpdateEvent(
-        text=f"❌ Error: {error_msg}", 
+        text=f"❌ Error: {error_msg}",
         icon="circle-question"
     )
 ```
@@ -186,7 +186,7 @@ if isinstance(result, dict):
     else:
         # Fallback for unknown result format
         clean_result = {
-            k: v for k, v in result.items() 
+            k: v for k, v in result.items()
             if k not in ["histogram_path"]  # Filter internal data
         }
         result_text = json.dumps(clean_result, indent=2)
@@ -223,14 +223,14 @@ async def chatkit_endpoint(
     request: Request, server: LangGraphSchedulingServer = Depends(get_server)
 ) -> Response:
     """Handle ChatKit streaming requests."""
-    
+
     # Parse ChatKit request
     request_data = await request.json()
-    
+
     # Extract user message and thread info
     thread = request_data.get("thread", {})
     thread_id = thread.get("id", DEFAULT_THREAD_ID)
-    
+
     # Stream through adapter
     return StreamingResponse(
         server.respond(thread_metadata, user_item, {}),
@@ -249,17 +249,17 @@ async def chatkit_endpoint(
 ```python
 async def test_text_streaming():
     adapter = LangGraphChatKitAdapter()
-    
+
     # Mock LangGraph response
     async def mock_langgraph_stream():
         yield {"type": "text", "content": "Hello"}
         yield {"type": "text", "content": " world"}
-    
+
     # Test adapter transformation
     events = []
     async for event in adapter.stream_agent_response_from_langgraph("test"):
         events.append(event)
-    
+
     # Verify ChatKit events
     assert isinstance(events[0], AssistantMessageContentPartTextDelta)
     assert events[0].delta == "Hello"
@@ -276,7 +276,7 @@ async def test_end_to_end_flow():
             "thread": {"id": "test-thread"},
             "message": {"content": [{"text": "show schedule"}]}
         })
-        
+
         # Verify streaming response
         async for line in response.aiter_lines():
             event = json.loads(line)
@@ -292,7 +292,7 @@ elif chunk_type == "custom_visualization":
     # Handle custom visualizations
     viz_data = chunk.get("data", {})
     yield ProgressUpdateEvent(
-        text=f"📊 Generated visualization: {viz_data['type']}", 
+        text=f"📊 Generated visualization: {viz_data['type']}",
         icon="chart"
     )
 ```
@@ -307,7 +307,7 @@ def format_tool_result(tool_name: str, result: dict) -> str:
         "show_load_distribution": format_load_distribution,
         "assign_section": format_assignment_result,
     }
-    
+
     formatter = formatters.get(tool_name, format_generic_result)
     return formatter(result)
 ```
@@ -330,7 +330,7 @@ logger = logging.getLogger(__name__)
 
 async def stream_agent_response_from_langgraph(self, ...):
     logger.info(f"Starting stream for thread: {thread_id}")
-    
+
     async for chunk in langgraph_agent.stream_response(thread_id, messages):
         logger.debug(f"Processing chunk: {chunk.get('type')}")
         # ... processing logic

@@ -4,7 +4,7 @@ An intelligent ChatKit-powered scheduling system for academic course timetabling
 
 ## 🎯 What's Inside
 - **🚀 LangGraph-ChatKit Adapter**: Revolutionary bridge enabling LangGraph agents to work seamlessly with ChatKit UI
-- **Dual Backend**: FastAPI servers with OpenAI Agents OR LangGraph implementation  
+- **Dual Backend**: FastAPI servers with OpenAI Agents OR LangGraph implementation
 - **ChatKit Integration**: React UI with real-time streaming, progress indicators, and rich formatting
 - **Smart Scheduling**: OR-Tools optimization for workload balancing
 - **Teacher Management**: Assign courses, resolve conflicts, optimize loads
