@@ -12,6 +12,9 @@ Requires-Dist: openai-chatkit<2,>=1.0.2
 Requires-Dist: matplotlib>=3.7.0
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: ortools>=9.7.0
+Requires-Dist: langchain>=0.1.0
+Requires-Dist: langchain-openai>=0.1.0
+Requires-Dist: langgraph>=0.1.0
 Provides-Extra: dev
 Requires-Dist: ruff<0.7,>=0.6.4; extra == "dev"
 Requires-Dist: mypy<2,>=1.8; extra == "dev"

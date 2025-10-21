@@ -1,0 +1,178 @@
+from __future__ import annotations
+
+from typing import Any, AsyncIterator
+
+from agents import RunConfig, Runner
+from agents.model_settings import ModelSettings
+from chatkit.agents import AgentContext, stream_agent_response
+from chatkit.server import ChatKitServer, StreamingResult
+from chatkit.types import (
+    Attachment,
+    ClientToolCallItem,
+    ThreadMetadata,
+    ThreadStreamEvent,
+    UserMessageItem,
+)
+from fastapi import Depends, FastAPI, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response, StreamingResponse
+from openai.types.responses import ResponseInputContentParam
+from starlette.responses import JSONResponse
+
+from .schedule_state import SCHEDULE_MANAGER
+from .memory_store import MemoryStore
+from .openai_agent import scheduling_agent
+
+DEFAULT_THREAD_ID = "demo_default_thread"
+
+
+def _user_message_text(item: UserMessageItem) -> str:
+    parts: list[str] = []
+    for part in item.content:
+        text = getattr(part, "text", None)
+        if text:
+            parts.append(text)
+    return " ".join(parts).strip()
+
+
+def _format_schedule_context() -> str:
+    """Format the current schedule state as context for the agent."""
+    state = SCHEDULE_MANAGER.get_state()
+
+    # Summary of teachers and their loads
+    teacher_summaries = []
+    for teacher_id, teacher_data in state["teachers"].items():
+        teacher = SCHEDULE_MANAGER.state.teachers[teacher_id]
+        load = SCHEDULE_MANAGER.compute_teacher_load(teacher)
+        utilization = (
+            (load / teacher_data["max_load_hours"] * 100)
+            if teacher_data["max_load_hours"] > 0
+            else 0
+        )
+        qualified_courses = ", ".join(teacher_data["qualified_courses"])
+        teacher_summaries.append(
+            f"- {teacher_data['name']} (qualified: {qualified_courses}): "
+            f"{load:.1f}/{teacher_data['max_load_hours']:.1f} hours ({utilization:.1f}%)"
+        )
+
+    # Count of sections and assignments
+    total_sections = len(state["sections"])
+    assigned_sections = len([a for a in state["assignments"].values() if a["teacher_id"]])
+    unassigned_sections = total_sections - assigned_sections
+
+    # Recent timeline entries
+    timeline = state["timeline"][:3]
+    recent = "\n".join(f"  * {entry['entry']} ({entry['timestamp']})" for entry in timeline)
+
+    return (
+        "Current Schedule State\n"
+        f"Total Sections: {total_sections} (Assigned: {assigned_sections}, Unassigned: {unassigned_sections})\n"
+        "Teacher Workloads:\n"
+        f"{chr(10).join(teacher_summaries)}\n"
+        "Recent Changes:\n"
+        f"{recent or '  * No recent changes recorded.'}"
+    )
+
+
+def _is_tool_completion_item(item: Any) -> bool:
+    return isinstance(item, ClientToolCallItem)
+
+
+class SchedulingServer(ChatKitServer[dict[str, Any]]):
+    def __init__(self) -> None:
+        store = MemoryStore()
+        super().__init__(store)
+        self.store = store
+        self.agent = scheduling_agent
+
+    def _resolve_thread_id(self, thread: ThreadMetadata | None) -> str:
+        return thread.id if thread and thread.id else DEFAULT_THREAD_ID
+
+    async def respond(
+        self,
+        thread: ThreadMetadata,
+        item: UserMessageItem | None,
+        context: dict[str, Any],
+    ) -> AsyncIterator[ThreadStreamEvent]:
+        if item is None:
+            return
+
+        if _is_tool_completion_item(item):
+            return
+
+        message_text = _user_message_text(item)
+        if not message_text:
+            return
+
+        context_prompt = _format_schedule_context()
+        combined_prompt = (
+            f"{context_prompt}\n\nUser request: {message_text}\n"
+            "Respond as the academic scheduling assistant."
+        )
+
+        agent_context = AgentContext(
+            thread=thread,
+            store=self.store,
+            request_context=context,
+        )
+        result = Runner.run_streamed(
+            self.agent,
+            combined_prompt,
+            context=agent_context,
+            run_config=RunConfig(model_settings=ModelSettings(temperature=0.4)),
+        )
+
+        async for event in stream_agent_response(agent_context, result):
+            yield event
+
+    async def to_message_content(self, _input: Attachment) -> ResponseInputContentParam:
+        raise RuntimeError("File attachments are not supported in this demo.")
+
+
+scheduling_server = SchedulingServer()
+
+
+app = FastAPI(title="ChatKit Academic Scheduling API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def get_server() -> SchedulingServer:
+    return scheduling_server
+
+
+@app.post("/schedule/chatkit")
+async def chatkit_endpoint(
+    request: Request, server: SchedulingServer = Depends(get_server)
+) -> Response:
+    payload = await request.body()
+    result = await server.process(payload, {"request": request})
+    if isinstance(result, StreamingResult):
+        return StreamingResponse(result, media_type="text/event-stream")
+    if hasattr(result, "json"):
+        return Response(content=result.json, media_type="application/json")
+    return JSONResponse(result)
+
+
+def _thread_param(thread_id: str | None) -> str:
+    return thread_id or DEFAULT_THREAD_ID
+
+
+@app.get("/schedule/state")
+async def schedule_snapshot(
+    thread_id: str | None = Query(None, description="ChatKit thread identifier"),
+    server: SchedulingServer = Depends(get_server),
+) -> dict[str, Any]:
+    """Get the current schedule state."""
+    data = SCHEDULE_MANAGER.get_state()
+    return {"schedule": data}
+
+
+@app.get("/schedule/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "healthy", "agent": "openai"}

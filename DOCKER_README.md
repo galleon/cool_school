@@ -1,6 +1,6 @@
-# Customer Support Application - Docker Setup
+# Academic Scheduling Assistant - Docker Setup
 
-This Docker Compose setup allows you to run the entire customer support application stack with containers.
+This Docker Compose setup allows you to run the entire academic scheduling application stack with containers, supporting both OpenAI and LangGraph backends.
 
 ## Prerequisites
 
@@ -10,37 +10,73 @@ This Docker Compose setup allows you to run the entire customer support applicat
 
 ## Quick Start
 
-### Option 1: Use the startup script
+### Start with LangGraph (default)
+```bash
+docker-compose up -d
+```
+
+### Start with OpenAI backend
+```bash
+AGENT_BACKEND=openai docker-compose up -d
+```
+
+### Using the startup script
 ```bash
 ./start-docker.sh
 ```
 
-### Option 2: Manual Docker Compose commands
+## 🚀 **Running Services:**
+
+Once started, you can access:
+- **Backend**: http://localhost:8001
+- **Frontend**: http://localhost:5173
+- **Health Check**: http://localhost:8001/schedule/health
+
+## 🎯 **Test the Application:**
+
+1. **Open the app**: http://localhost:5173
+2. **Try these prompts**:
+   - "Show me the current schedule overview"
+   - "Swap CS101-A from Alice to Bob"
+   - "Help me rebalance the teaching workload"
+   - "Find all unassigned sections"
+
+## Usage Examples
+
+### Backend Selection
 ```bash
-# Build and start all services
-docker-compose up --build -d
+# Default (LangGraph)
+docker-compose up -d
 
-# View logs
-docker-compose logs -f
+# OpenAI backend
+AGENT_BACKEND=openai docker-compose up -d
 
-# Stop services
-docker-compose down
+# LangGraph backend (explicit)
+AGENT_BACKEND=langgraph docker-compose up -d
+```
+
+### Development
+```bash
+# Build and start with logs
+docker-compose up --build
+
+# Restart just the backend
+docker-compose restart backend
+
+# Force recreate backend with new environment
+AGENT_BACKEND=openai docker-compose up -d --force-recreate backend
 ```
 
 ## Services
 
 The stack includes:
 
-1. **Database (PostgreSQL)**: `localhost:5432`
-   - Database: `brs_prototype_db`
-   - User: `postgres`
-   - Password: `postgres` (from .env)
-
-2. **Backend API (FastAPI)**: `localhost:8001`
-   - FastAPI server with OpenAI integration
+1. **Backend API (FastAPI)**: `localhost:8001`
+   - FastAPI server with OpenAI/LangGraph integration
    - Auto-reloads on code changes
+   - In-memory storage for demo data
 
-3. **Frontend (React + Vite)**: `localhost:5173`
+2. **Frontend (React + Vite)**: `localhost:5173`
    - React development server
    - Hot reloading enabled
 
@@ -54,13 +90,10 @@ OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_API_BASE=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o-mini
 
-# Database
-DATABASE_URL=postgresql://postgres:postgres@db:5432/brs_prototype_db
-POSTGRES_DB=brs_prototype_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+# Agent Backend Selection (optional)
+AGENT_BACKEND=langgraph  # or 'openai'
 
-# API URLs
+# API URLs (optional - defaults work for Docker setup)
 API_BASE_URL=http://localhost:8001
 VITE_API_BASE=http://localhost:8001
 
@@ -75,7 +108,6 @@ VITE_KNOWLEDGE_CHATKIT_API_DOMAIN_KEY=domain_pk_localhost_dev
 # View logs for specific service
 docker-compose logs -f backend
 docker-compose logs -f frontend
-docker-compose logs -f db
 
 # Restart a specific service
 docker-compose restart backend
@@ -84,11 +116,8 @@ docker-compose restart frontend
 # Rebuild and restart
 docker-compose up --build
 
-# Stop and remove everything (including volumes)
-docker-compose down -v
-
-# Access database
-docker-compose exec db psql -U postgres -d brs_prototype_db
+# Stop and remove everything
+docker-compose down
 
 # Access backend container
 docker-compose exec backend bash
@@ -113,10 +142,6 @@ The containers are set up for development with:
 ### Frontend issues
 - Check if frontend dependencies are installed
 - View frontend logs: `docker-compose logs -f frontend`
-
-### Database issues
-- Check if database is healthy: `docker-compose ps`
-- Access database directly: `docker-compose exec db psql -U postgres`
 
 ### Port conflicts
 If ports are already in use, you can modify the port mappings in `docker-compose.yml`:

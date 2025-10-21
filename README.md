@@ -1,34 +1,142 @@
-# Customer Support Demo
+# Academic Scheduling Assistant
 
-Deliver airline-quality support with a ChatKit-powered workflow. This example pairs a scenario-specific FastAPI backend with a React UI so agents can chat with travelers while the right-hand panel surfaces live itinerary data, loyalty status, and recent service actions.
+An intelligent ChatKit-powered scheduling system for academic course timetabling and teacher assignment. This project demonstrates a **dual-backend architecture** supporting both OpenAI Agents and LangGraph frameworks with perfect symmetry.
 
-## What's Inside
-- FastAPI service that streams responses from an OpenAI Agent trained on airline tooling.
-- ChatKit Web Component embedded in a React app with a context-rich side panel.
-- Tools for seat changes, trip cancellations, and itinerary updates that sync with the UI in real time.
+## 🎯 What's Inside
+- **Dual Backend**: FastAPI servers with OpenAI Agents OR LangGraph implementation
+- **ChatKit Integration**: React UI with real-time streaming responses
+- **Smart Scheduling**: OR-Tools optimization for workload balancing
+- **Teacher Management**: Assign courses, resolve conflicts, optimize loads
+- **Clean Architecture**: Framework-agnostic business logic with symmetric implementations
 
-## Prerequisites
+## 📋 Architecture
+
+> 📋 **For detailed architecture diagrams and technical details, see [backend/ARCHITECTURE.md](./backend/ARCHITECTURE.md)**
+
+The system uses a layered architecture with perfect framework symmetry:
+
+```
+Frontend (React) → Entry Point (main.py) → Backend Selection (config.py)
+    ↓
+{OpenAI Server | LangGraph Server} → {OpenAI Agent | LangGraph Agent}
+    ↓
+{OpenAI Tools | LangGraph Tools} → Core Business Logic → Data Layer
+```
+
+## 🚀 Prerequisites
 - Python 3.11+
 - Node.js 20+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended) or `pip`
 - OpenAI API key exported as `OPENAI_API_KEY`
-- ChatKit domain key exported as `VITE_SUPPORT_CHATKIT_API_DOMAIN_KEY` (use any non-empty placeholder while developing locally; supply the real key in production)
+- ChatKit domain key exported as `VITE_SUPPORT_CHATKIT_API_DOMAIN_KEY`
 
-## Quickstart Overview
-1. Install dependencies and start the customer support backend.
-2. Configure the domain key and launch the React frontend.
-3. Explore the support scenarios end to end.
+## ⚡ Quick Start
 
-Each step is detailed below.
+### 1. Start the Backend
 
-### 1. Start the FastAPI backend
+The backend automatically selects between OpenAI and LangGraph based on configuration:
+### 1. Start the Backend
 
-The backend for this demo lives in `examples/customer-support/backend` and ships with its own `pyproject.toml`.
+The backend automatically selects between OpenAI and LangGraph based on configuration:
 
 ```bash
-cd examples/customer-support/backend
+cd backend
 uv sync
 export OPENAI_API_KEY="sk-proj-..."
+
+# Option 1: Use environment variable to select backend
+export AGENT_BACKEND=langgraph  # or "openai"
+uv run uvicorn app.main:app --reload --port 8001
+
+# Option 2: Start specific backend directly
+uv run uvicorn app.langgraph_server:app --reload --port 8001
+# OR
+uv run uvicorn app.openai_server:app --reload --port 8001
+```
+
+### 2. Start the Frontend
+
+```bash
+cd frontend
+npm install
+export VITE_SUPPORT_CHATKIT_API_DOMAIN_KEY="your-domain-key"
+npm run dev
+```
+
+### 3. Start with Docker
+
+```bash
+# Use LangGraph backend (default)
+docker-compose up -d
+
+# Use OpenAI backend
+AGENT_BACKEND=openai docker-compose up -d
+```
+
+## 🛠️ Available Tools
+
+The scheduling assistant provides these capabilities:
+
+- **📊 Schedule Overview** - Complete view of teachers, sections, and assignments
+- **📈 Load Distribution** - Workload analysis with visualizations
+- **⚠️ Violation Detection** - Find overloaded teachers or scheduling conflicts
+- **🔄 Smart Rebalancing** - OR-Tools optimization for balanced workloads
+- **↔️ Section Swapping** - Reassign sections between qualified teachers
+- **📋 Unassigned Tracking** - Find sections needing teacher assignment
+- **✅ Section Assignment** - Assign sections to qualified teachers
+
+## 🔧 Framework Switching
+
+Switch between agent frameworks without code changes:
+
+```bash
+# Use LangGraph (default)
+export AGENT_BACKEND=langgraph
+
+# Use OpenAI Agents
+export AGENT_BACKEND=openai
+```
+
+Both implementations provide identical functionality and responses.
+
+## 📚 Documentation
+
+- **[Architecture & Implementation Guide](./backend/ARCHITECTURE.md)** - Complete system design, framework comparison, and technical details
+- **[Docker Setup](./DOCKER_README.md)** - Container deployment guide
+
+## 🧪 Testing
+
+```bash
+cd backend
+
+# Run LangGraph tests
+export OPENAI_API_KEY="sk-test-key"
+uv run python tests/test_langgraph.py
+
+# Run integration tests
+uv run python tests/test_integration.py
+
+# Compare agent implementations
+uv run python tests/test_agent_comparison.py
+```
+
+## 🎯 Key Features
+
+- **🔄 Dual Backend Support**: Switch between OpenAI Agents and LangGraph seamlessly
+- **🎨 Clean Architecture**: Perfect framework symmetry with shared business logic
+- **⚡ Real-time Streaming**: Live responses through ChatKit integration
+- **🧠 Smart Optimization**: OR-Tools integration for optimal scheduling
+- **🔧 Easy Configuration**: Environment-based backend selection
+- **🐳 Docker Ready**: Complete containerized deployment
+- **🧪 Well Tested**: Comprehensive test coverage for both backends
+
+## 🚀 Production Deployment
+
+The system is production-ready with:
+- Framework-agnostic design for vendor flexibility
+- Clean separation of concerns for maintainability
+- Comprehensive testing for reliability
+- Container-based deployment for scalability
 uv run uvicorn app.main:app --reload --port 8001
 ```
 
