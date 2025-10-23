@@ -124,6 +124,7 @@ dependencies = [
     { name = "openai-chatkit" },
     { name = "ortools" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -148,6 +149,7 @@ requires-dist = [
     { name = "openai-chatkit", specifier = ">=1.0.2,<2" },
     { name = "ortools", specifier = ">=9.7.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.4,<0.7" },

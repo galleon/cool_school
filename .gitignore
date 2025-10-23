@@ -52,6 +52,7 @@ logs/
 # Build outputs
 dist/
 build/
+*.egg-info/
 
 # Demo files (keep in repo but ignore if needed)
 # demo/
