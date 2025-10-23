@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Dict, List, TypedDict, Annotated, AsyncIterator
+from typing import TypedDict, Annotated, AsyncIterator
 
 try:
     from langchain_openai import ChatOpenAI
@@ -18,7 +18,7 @@ except ImportError:
     LANGGRAPH_AVAILABLE = False
 
 from .langgraph_tools import UNIVERSITY_TOOLS
-from .config import get_llm_config
+from .config import settings, get_llm_config
 
 # Setup logging for this module
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class AgentState(TypedDict):
     """State for the university schedule management agent graph."""
 
-    messages: Annotated[List, add_messages]
+    messages: Annotated[list, add_messages]
     thread_id: str
 
 
@@ -167,7 +167,7 @@ Guidelines:
 
 Always be helpful and provide clear explanations of any scheduling operations performed."""
 
-    async def stream_response(self, thread_id: str, messages: List[Dict]) -> AsyncIterator[Dict]:
+    async def stream_response(self, thread_id: str, messages: list[dict]) -> AsyncIterator[dict]:
         """Generate a streaming response using the LangGraph agent."""
         try:
             # Log incoming user request
@@ -250,7 +250,7 @@ Always be helpful and provide clear explanations of any scheduling operations pe
                 "content": f"I encountered an error: {str(e)}. Please try rephrasing your request.",
             }
 
-    async def respond(self, thread_id: str, messages: List[Dict]) -> str:
+    async def respond(self, thread_id: str, messages: list[dict]) -> str:
         """Generate a non-streaming response (for backward compatibility)."""
         chunks = []
         async for chunk in self.stream_response(thread_id, messages):

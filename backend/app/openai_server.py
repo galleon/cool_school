@@ -19,6 +19,8 @@ from fastapi.responses import Response, StreamingResponse
 from openai.types.responses import ResponseInputContentParam
 from starlette.responses import JSONResponse
 
+from .config import settings
+
 from .schedule_state import SCHEDULE_MANAGER
 from .memory_store import MemoryStore
 from .openai_agent import scheduling_agent
@@ -131,12 +133,11 @@ class SchedulingServer(ChatKitServer[dict[str, Any]]):
 
 scheduling_server = SchedulingServer()
 
-
-app = FastAPI(title="ChatKit Academic Scheduling API")
+app = FastAPI(title="ChatKit Academic Scheduling API", debug=settings.DEBUG)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Keep simple for now - could use settings.cors_origins
     allow_methods=["*"],
     allow_headers=["*"],
 )

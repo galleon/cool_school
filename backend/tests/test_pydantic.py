@@ -1,18 +1,16 @@
+#!/usr/bin/env python3
 """
-Test suite for Pydantic models, settings, and migration functionality.
+Test script to verify Pydantic models and migration functionality.
 """
 
-import os
 import sys
+import os
 
-from pydantic import ValidationError
-
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.migration import convert_legacy_schedule_state, export_to_legacy_format
-from app.models import CourseSection, Room, Teacher, TimeSlot, WeekDay
+from app.models import TimeSlot, WeekDay, Teacher, Room, CourseSection, ScheduleState
 from app.settings import AppSettings, LLMConfig
+from app.migration import convert_legacy_schedule_state, export_to_legacy_format
 
 
 def test_basic_models():
@@ -104,6 +102,8 @@ def test_migration():
 def test_validation():
     """Test Pydantic validation features."""
     print("🧪 Testing Pydantic validation...")
+
+    from pydantic import ValidationError
 
     try:
         # Should fail - end before start

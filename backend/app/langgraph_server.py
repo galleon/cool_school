@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, AsyncIterator
 import json
 
-
 from chatkit.types import (
     Attachment,
     ClientToolCallItem,
@@ -19,6 +18,8 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from openai.types.responses import ResponseInputContentParam
+
+from .config import settings
 from starlette.responses import JSONResponse
 from chatkit.server import ChatKitServer, StreamingResult
 
@@ -192,12 +193,13 @@ class LangGraphSchedulingServer(ChatKitServer[dict[str, Any]]):
 
 langgraph_scheduling_server = LangGraphSchedulingServer()
 
-
-app = FastAPI(title="LangGraph Academic Scheduling API")
+app = FastAPI(title="LangGraph Academic Scheduling API", debug=settings.DEBUG)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*"
+    ],  # Keep simple for now - settings.cors_origins would need to be added to config
     allow_methods=["*"],
     allow_headers=["*"],
 )

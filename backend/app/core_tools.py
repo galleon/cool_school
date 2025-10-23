@@ -3,11 +3,11 @@ Core tool functions that are backend-agnostic.
 Both OpenAI and LangGraph tools can call these functions.
 """
 
-from typing import Dict, Any
+from typing import Any
 from .schedule_state import SCHEDULE_MANAGER
 
 
-def core_show_schedule_overview() -> Dict[str, Any]:
+def core_show_schedule_overview() -> dict[str, Any]:
     """Core logic for schedule overview - backend agnostic."""
     state = SCHEDULE_MANAGER.get_state()
 
@@ -34,7 +34,7 @@ def core_show_schedule_overview() -> Dict[str, Any]:
     }
 
 
-def core_show_load_distribution() -> Dict[str, Any]:
+def core_show_load_distribution() -> dict[str, Any]:
     """Core logic for load distribution analysis."""
     import matplotlib.pyplot as plt
     import tempfile
@@ -70,7 +70,7 @@ def core_show_load_distribution() -> Dict[str, Any]:
         }
 
 
-def core_show_violations(violation_type: str) -> Dict[str, Any]:
+def core_show_violations(violation_type: str) -> dict[str, Any]:
     """Core logic for showing violations."""
     if violation_type == "overload":
         overloads = SCHEDULE_MANAGER.find_overload()
@@ -99,7 +99,7 @@ def core_show_violations(violation_type: str) -> Dict[str, Any]:
         return {"error": "Unknown violation type. Use 'overload' or 'conflict'."}
 
 
-def core_rebalance(max_load_hours: float = None) -> Dict[str, Any]:
+def core_rebalance(max_load_hours: float = None) -> dict[str, Any]:
     """Core logic for rebalancing workloads."""
     # Snapshot the serialized state before running the rebalancer.
     old_snapshot = SCHEDULE_MANAGER.get_state()
@@ -145,7 +145,7 @@ def core_rebalance(max_load_hours: float = None) -> Dict[str, Any]:
     }
 
 
-def core_swap(section_id: str, from_teacher: str, to_teacher: str) -> Dict[str, Any]:
+def core_swap(section_id: str, from_teacher: str, to_teacher: str) -> dict[str, Any]:
     """Core logic for swapping section assignments."""
     from_teacher_id = SCHEDULE_MANAGER.teacher_name_to_id(from_teacher)
     to_teacher_id = SCHEDULE_MANAGER.teacher_name_to_id(to_teacher)
@@ -167,7 +167,7 @@ def core_swap(section_id: str, from_teacher: str, to_teacher: str) -> Dict[str, 
     }
 
 
-def core_show_unassigned() -> Dict[str, Any]:
+def core_show_unassigned() -> dict[str, Any]:
     """Core logic for finding unassigned sections."""
     state = SCHEDULE_MANAGER.get_state()
 
@@ -193,7 +193,7 @@ def core_show_unassigned() -> Dict[str, Any]:
     }
 
 
-def core_assign_section(section_id: str, teacher: str) -> Dict[str, Any]:
+def core_assign_section(section_id: str, teacher: str) -> dict[str, Any]:
     """Core logic for assigning a section to a teacher."""
     state = SCHEDULE_MANAGER.get_state()
 

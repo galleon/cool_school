@@ -158,7 +158,7 @@ The system is production-ready with:
 Open `http://localhost:5173` and experiment with prompts such as:
 
 - **"Show me the current schedule overview"**
-- **"Find all scheduling violations"** 
+- **"Find all scheduling violations"**
 - **"Rebalance the teaching workloads"**
 - **"Swap CS101-A from Alice to Bob"**
 - **"Show me the load distribution"**

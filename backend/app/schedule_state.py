@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Set
+from typing import Any
 
 try:
     from ortools.linear_solver import pywraplp
@@ -22,7 +22,7 @@ class TimeSlot:
     start_hour: float  # 9.0 = 9:00 AM
     end_hour: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def __str__(self) -> str:
@@ -38,10 +38,10 @@ class Teacher:
     id: str
     name: str
     max_load_hours: float
-    qualified_courses: Set[str] = field(default_factory=set)
-    availability: List[TimeSlot] = field(default_factory=list)
+    qualified_courses: set[str] = field(default_factory=set)
+    availability: list[TimeSlot] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
