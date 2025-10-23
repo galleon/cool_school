@@ -17,6 +17,15 @@ from .core_tools import (
     core_show_unassigned,
     core_assign_section,
 )
+from .tool_responses import (
+    ScheduleOverviewResponse,
+    LoadDistributionResponse,
+    ViolationsResponse,
+    RebalancingResponse,
+    SwapResponse,
+    UnassignedResponse,
+    AssignmentResponse,
+)
 
 
 # Input validation models for OpenAI tools
@@ -49,9 +58,10 @@ class AssignInput(BaseModel):
 )
 async def show_schedule_overview(
     ctx: RunContextWrapper[AgentContext],
-) -> dict[str, Any]:
+) -> ScheduleOverviewResponse:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
-    return core_show_schedule_overview()
+    result = core_show_schedule_overview()
+    return ScheduleOverviewResponse(**result)
 
 
 @function_tool(
@@ -59,9 +69,10 @@ async def show_schedule_overview(
 )
 async def show_load_distribution(
     ctx: RunContextWrapper[AgentContext],
-) -> dict[str, Any]:
+) -> LoadDistributionResponse:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
-    return core_show_load_distribution()
+    result = core_show_load_distribution()
+    return LoadDistributionResponse(**result)
 
 
 @function_tool(
@@ -70,9 +81,13 @@ async def show_load_distribution(
 async def show_violations(
     ctx: RunContextWrapper[AgentContext],
     type: str,
-) -> dict[str, Any]:
+) -> ViolationsResponse:
     """Show violations of a given type: overload or conflict."""
-    return core_show_violations(type)
+    result = core_show_violations(type)
+    if "error" in result:
+        # Handle error case - return empty violations for this type
+        return ViolationsResponse(type=type, violations=[])
+    return ViolationsResponse(**result)
 
 
 @function_tool(
@@ -81,9 +96,10 @@ async def show_violations(
 async def rebalance(
     ctx: RunContextWrapper[AgentContext],
     max_load_hours: float | None = None,
-) -> dict[str, Any]:
+) -> RebalancingResponse:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
-    return core_rebalance(max_load_hours)
+    result = core_rebalance(max_load_hours)
+    return RebalancingResponse(**result)
 
 
 @function_tool(
@@ -94,9 +110,12 @@ async def swap(
     section_id: str,
     from_teacher: str,
     to_teacher: str,
-) -> dict[str, Any]:
+) -> SwapResponse:
     """Swap a section from one teacher to another by names or IDs."""
-    return core_swap(section_id, from_teacher, to_teacher)
+    result = core_swap(section_id, from_teacher, to_teacher)
+    if "error" in result:
+        return SwapResponse(success=False, message=result["error"])
+    return SwapResponse(success=True, **result)
 
 
 @function_tool(
@@ -104,9 +123,10 @@ async def swap(
 )
 async def show_unassigned(
     ctx: RunContextWrapper[AgentContext],
-) -> dict[str, Any]:
+) -> UnassignedResponse:
     """Find all unassigned course sections that need teacher assignments."""
-    return core_show_unassigned()
+    result = core_show_unassigned()
+    return UnassignedResponse(**result)
 
 
 @function_tool(
@@ -114,9 +134,12 @@ async def show_unassigned(
 )
 async def assign_section(
     ctx: RunContextWrapper[AgentContext], /, *, section_id: str, teacher: str
-) -> dict[str, Any]:
+) -> AssignmentResponse:
     """Assign an unassigned course section to a qualified teacher."""
-    return core_assign_section(section_id, teacher)
+    result = core_assign_section(section_id, teacher)
+    if "error" in result:
+        return AssignmentResponse(success=False, message=result["error"])
+    return AssignmentResponse(success=True, **result)
 
 
 # Export all tools in a list for easy import

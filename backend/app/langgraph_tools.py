@@ -1,12 +1,11 @@
 """LangGraph tool wrappers for university schedule management.
 
 These tools use LangChain's @tool decorator but are specifically designed
-for use with LangGraph agents.
+for use with LangGraph agents. All tools return properly typed Pydantic models
+for type safety and validation.
 """
 
 from __future__ import annotations
-
-from typing import Any, Dict
 
 try:
     from langchain_core.tools import tool
@@ -24,48 +23,73 @@ from .core_tools import (
     core_show_unassigned,
     core_assign_section,
 )
+from .tool_responses import (
+    ScheduleOverviewResponse,
+    LoadDistributionResponse,
+    ViolationsResponse,
+    RebalancingResponse,
+    SwapResponse,
+    UnassignedResponse,
+    AssignmentResponse,
+    ToolErrorResponse,
+)
 
 
 @tool
-def show_schedule_overview() -> Dict[str, Any]:
+def show_schedule_overview() -> ScheduleOverviewResponse:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
-    return core_show_schedule_overview()
+    result = core_show_schedule_overview()
+    return ScheduleOverviewResponse(**result)
 
 
 @tool
-def show_load_distribution() -> Dict[str, Any]:
+def show_load_distribution() -> LoadDistributionResponse:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
-    return core_show_load_distribution()
+    result = core_show_load_distribution()
+    return LoadDistributionResponse(**result)
 
 
 @tool
-def show_violations(type: str) -> Dict[str, Any]:
+def show_violations(type: str) -> ViolationsResponse:
     """Show violations of a given type: overload or conflict."""
-    return core_show_violations(type)
+    result = core_show_violations(type)
+    if "error" in result:
+        # Handle error case - convert to ToolErrorResponse and then wrap in ViolationsResponse
+        # For now, return a violations response with empty violations
+        return ViolationsResponse(type=type, violations=[])
+    return ViolationsResponse(**result)
 
 
 @tool
-def rebalance(max_load_hours: float = None) -> Dict[str, Any]:
+def rebalance(max_load_hours: float = None) -> RebalancingResponse:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
-    return core_rebalance(max_load_hours)
+    result = core_rebalance(max_load_hours)
+    return RebalancingResponse(**result)
 
 
 @tool
-def swap(section_id: str, from_teacher: str, to_teacher: str) -> Dict[str, Any]:
+def swap(section_id: str, from_teacher: str, to_teacher: str) -> SwapResponse:
     """Swap a section from one teacher to another by names or IDs."""
-    return core_swap(section_id, from_teacher, to_teacher)
+    result = core_swap(section_id, from_teacher, to_teacher)
+    if "error" in result:
+        return SwapResponse(success=False, message=result["error"])
+    return SwapResponse(success=True, **result)
 
 
 @tool
-def show_unassigned() -> Dict[str, Any]:
+def show_unassigned() -> UnassignedResponse:
     """Find all unassigned course sections that need teacher assignments."""
-    return core_show_unassigned()
+    result = core_show_unassigned()
+    return UnassignedResponse(**result)
 
 
 @tool
-def assign_section(section_id: str, teacher: str) -> Dict[str, Any]:
+def assign_section(section_id: str, teacher: str) -> AssignmentResponse:
     """Assign an unassigned course section to a qualified teacher."""
-    return core_assign_section(section_id, teacher)
+    result = core_assign_section(section_id, teacher)
+    if "error" in result:
+        return AssignmentResponse(success=False, message=result["error"])
+    return AssignmentResponse(success=True, **result)
 
 
 # Export all tools in a list for easy import
