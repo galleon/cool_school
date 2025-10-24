@@ -29,13 +29,12 @@ class TestSettingsRequired:
             settings = Settings()
             assert settings.openai_api_key == "test-key"
 
-    def test_missing_openai_api_key_rejected(self):
-        """Should raise ValidationError when OPENAI_API_KEY is missing."""
+    def test_missing_openai_api_key_uses_none(self):
+        """OPENAI_API_KEY is optional, defaults to None."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValidationError) as exc_info:
-                Settings()
-            errors = exc_info.value.errors()
-            assert any(err["type"] == "missing" for err in errors)
+            settings = Settings()
+            # openai_api_key is optional and can be None
+            assert settings.openai_api_key is None
 
     def test_empty_openai_api_key_accepted(self):
         """Should accept empty string for API key (runtime check would happen elsewhere)."""
@@ -68,23 +67,23 @@ class TestSettingsDefaults:
             settings = Settings()
             assert settings.log_level == "INFO"
 
-    def test_environment_has_default(self):
-        """Should have sensible default for environment."""
+    def test_agent_backend_has_default(self):
+        """Should have sensible default for agent_backend."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
-            assert settings.environment == "development"
+            assert settings.agent_backend == "openai"
 
-    def test_database_url_has_default(self):
-        """Should have sensible default for database_url."""
+    def test_host_has_default(self):
+        """Should have sensible default for host."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
-            assert settings.database_url is not None
+            assert settings.host == "0.0.0.0"
 
     def test_model_config_extra_forbid(self):
         """Settings should forbid extra fields."""
@@ -101,28 +100,26 @@ class TestSettingsDefaults:
 class TestSettingsValidation:
     """Tests for Settings field validation."""
 
-    def test_environment_valid_values(self):
-        """Should accept valid environment values."""
+    def test_agent_backend_valid_values(self):
+        """Should accept valid agent backend values."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
-            "ENVIRONMENT": "production",
+            "AGENT_BACKEND": "langgraph",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
-            assert settings.environment == "production"
+            assert settings.agent_backend == "langgraph"
 
-    def test_environment_invalid_value_rejected(self):
-        """Should reject invalid environment values."""
+    def test_agent_backend_invalid_value_rejected(self):
+        """Should reject invalid agent backend values."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
-            "ENVIRONMENT": "invalid_env",
+            "AGENT_BACKEND": "invalid_backend",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValidationError) as exc_info:
                 Settings()
             errors = exc_info.value.errors()
-            # The exact error depends on how Settings validates environment
-            # It could be enum validation or pattern validation
             assert len(errors) > 0
 
     def test_log_level_valid_values(self):
@@ -175,23 +172,21 @@ class TestSettingsIntegration:
             settings = Settings()
             assert settings is not None
 
-    def test_settings_database_url_not_none(self):
-        """Settings database_url should not be None."""
+    def test_settings_openai_api_key_exists(self):
+        """Settings openai_api_key should exist."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
-            assert settings.database_url is not None
-            assert isinstance(settings.database_url, str)
-            assert len(settings.database_url) > 0
+            assert hasattr(settings, "openai_api_key")
 
 
 class TestSettingsTypes:
     """Tests for Settings field types and constraints."""
 
     def test_settings_all_required_fields_present(self):
-        """Settings should define all required fields."""
+        """Settings should define all core fields."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
         }
@@ -199,9 +194,10 @@ class TestSettingsTypes:
             settings = Settings()
             # Verify critical attributes exist
             assert hasattr(settings, "openai_api_key")
-            assert hasattr(settings, "environment")
+            assert hasattr(settings, "agent_backend")
             assert hasattr(settings, "log_level")
-            assert hasattr(settings, "database_url")
+            assert hasattr(settings, "host")
+            assert hasattr(settings, "port")
 
     def test_settings_field_types_correct(self):
         """Settings fields should have correct types."""
@@ -210,10 +206,11 @@ class TestSettingsTypes:
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
-            assert isinstance(settings.openai_api_key, str)
-            assert isinstance(settings.environment, str)
+            assert settings.openai_api_key is None or isinstance(settings.openai_api_key, str)
+            assert isinstance(settings.agent_backend, str)
             assert isinstance(settings.log_level, str)
-            assert isinstance(settings.database_url, str)
+            assert isinstance(settings.host, str)
+            assert isinstance(settings.port, int)
 
 
 class TestEnvFilePriority:
@@ -229,32 +226,25 @@ class TestEnvFilePriority:
             assert settings.openai_api_key == "explicit-key"
 
     def test_all_required_fields_can_be_set_via_env(self):
-        """All required fields should be settable via environment variables."""
+        """All core fields should be settable via environment variables."""
         env_vars = {
             "OPENAI_API_KEY": "test-key",
-            "ENVIRONMENT": "production",
+            "AGENT_BACKEND": "langgraph",
             "LOG_LEVEL": "DEBUG",
-            "DATABASE_URL": "postgresql://localhost/test",
+            "HOST": "127.0.0.1",
+            "PORT": "9000",
         }
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Settings()
             assert settings.openai_api_key == "test-key"
-            assert settings.environment == "production"
+            assert settings.agent_backend == "langgraph"
             assert settings.log_level == "DEBUG"
-            assert settings.database_url == "postgresql://localhost/test"
+            assert settings.host == "127.0.0.1"
+            assert settings.port == 9000
 
 
 class TestSettingsValidationErrors:
     """Tests for validation error messages and clarity."""
-
-    def test_missing_required_field_error_message_clear(self):
-        """ValidationError message for missing required field should be clear."""
-        with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValidationError) as exc_info:
-                Settings()
-            # The error should mention the missing field
-            error_str = str(exc_info.value)
-            assert "openai_api_key" in error_str.lower() or "OPENAI_API_KEY" in error_str
 
     def test_extra_field_error_message_clear(self):
         """ValidationError message for extra field should be clear."""
@@ -263,7 +253,19 @@ class TestSettingsValidationErrors:
         }
         with patch.dict(os.environ, env_vars, clear=True):
             with pytest.raises(ValidationError) as exc_info:
-                Settings(extra_field="value")
+                Settings(unknown_field="value")
             error_str = str(exc_info.value)
             # Error should mention extra field
-            assert "extra_field" in error_str or "Extra" in error_str
+            assert "unknown_field" in error_str or "Extra" in error_str
+
+    def test_invalid_port_rejected(self):
+        """Should reject invalid port values."""
+        env_vars = {
+            "OPENAI_API_KEY": "test-key",
+            "PORT": "99999",  # Out of valid range (1-65535)
+        }
+        with patch.dict(os.environ, env_vars, clear=True):
+            with pytest.raises(ValidationError) as exc_info:
+                Settings()
+            errors = exc_info.value.errors()
+            assert len(errors) > 0

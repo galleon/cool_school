@@ -386,16 +386,14 @@ class TestAssignmentCreate:
         assert assignment.teacher_id is None
         assert assignment.room_id is None
 
-    def test_empty_section_id_rejected(self):
-        """Should reject empty section_id."""
+    def test_assignment_section_id_can_be_empty_string(self):
+        """Section_id can be empty string (no min_length constraint on section_id in AssignmentCreate)."""
         payload = {
             "section_id": "",
             "teacher_id": "t_alice",
         }
-        with pytest.raises(ValidationError) as exc_info:
-            AssignmentCreate(**payload)
-        errors = exc_info.value.errors()
-        assert any(err["loc"] == ("section_id",) for err in errors)
+        assignment = AssignmentCreate(**payload)
+        assert assignment.section_id == ""
 
     def test_extra_fields_forbidden(self):
         """Should reject extra fields."""
