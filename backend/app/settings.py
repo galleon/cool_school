@@ -8,7 +8,7 @@ with support for environment variables, default values, and validation.
 import os
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -105,11 +105,12 @@ class AppSettings(BaseSettings):
             print(f"Warning: Schedule data file not found at {v}")
         return v
 
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "case_sensitive": False,
-    }
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="forbid",
+    )
 
 
 class LLMConfig(BaseSettings):
@@ -155,21 +156,30 @@ class LLMConfig(BaseSettings):
     # Streaming Configuration
     stream: bool = Field(default=True, description="Enable streaming responses", env="LLM_STREAM")
 
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "case_sensitive": False,
-    }
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="forbid",
+    )
 
 
 # Global settings instances
 app_settings = AppSettings()
 llm_config = LLMConfig()
 
+# Backward compatibility alias
+Settings = AppSettings
+
 
 def get_app_settings() -> AppSettings:
     """Get the global application settings."""
     return app_settings
+
+
+def get_settings() -> AppSettings:
+    """Alias for get_app_settings for backward compatibility."""
+    return get_app_settings()
 
 
 def get_llm_config() -> LLMConfig:
