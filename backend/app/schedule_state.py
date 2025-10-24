@@ -389,7 +389,9 @@ class ScheduleManager:
 
         # Objective: Minimize load variance (using auxiliary variables)
         # First, calculate total load and number of teachers for average
-        total_hours = sum(section.compute_weekly_hours() for section in self.state.sections.values())
+        total_hours = sum(
+            section.compute_weekly_hours() for section in self.state.sections.values()
+        )
         num_teachers = len(teachers)
         target_load = total_hours / num_teachers
 

@@ -175,21 +175,26 @@ def core_show_unassigned() -> dict[str, Any]:
     for assignment_id, assignment in state["assignments"].items():
         if assignment["teacher_id"] is None:
             section = state["sections"][assignment["section_id"]]
+            # Calculate weekly hours from timeslots
+            weekly_hours = sum(slot["end_hour"] - slot["start_hour"] for slot in section["timeslots"])
+            # Format timeslots as human-readable strings
+            timeslot_strings = [
+                f"{slot['day'].name}: {slot['start_hour']:.0f}:00-{slot['end_hour']:.0f}:00"
+                for slot in section["timeslots"]
+            ]
             unassigned_sections.append(
                 {
                     "section_id": assignment["section_id"],
                     "course_code": section["course_code"],
                     "enrollment": section["enrollment"],
-                    "required_feature": section["required_feature"],
-                    "timeslots": section["timeslots"],
+                    "weekly_hours": weekly_hours,
+                    "timeslots": timeslot_strings,
                 }
             )
 
     return {
         "message": f"Found {len(unassigned_sections)} unassigned section(s)",
         "unassigned_sections": unassigned_sections,
-        "total_sections": len(state["sections"]),
-        "assigned_sections": len(state["sections"]) - len(unassigned_sections),
     }
 
 
@@ -231,7 +236,6 @@ def core_assign_section(section_id: str, teacher: str) -> dict[str, Any]:
 
     # Make the assignment
     SCHEDULE_MANAGER.state.assignments[section_id].teacher_id = teacher_id
-    SCHEDULE_MANAGER.state.log(f"Assigned {section_id} to {teacher_obj.name}", "assignment")
 
     return {
         "message": f"Successfully assigned {section_id} to {teacher_obj.name}",

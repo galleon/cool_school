@@ -95,8 +95,7 @@ async def get_schedule_overview() -> ScheduleOverviewResponse:
     result = core_show_schedule_overview()
     # Construct TeacherLoadInfo objects from the teachers dict
     teachers_with_info = {
-        tid: TeacherLoadInfo(**teacher_data)
-        for tid, teacher_data in result["teachers"].items()
+        tid: TeacherLoadInfo(**teacher_data) for tid, teacher_data in result["teachers"].items()
     }
     return ScheduleOverviewResponse(
         message=result["message"],
@@ -124,33 +123,13 @@ async def get_unassigned_sections() -> UnassignedResponse:
     from ..tool_responses import UnassignedSection
 
     result = core_show_unassigned()
-    
-    # Construct UnassignedSection objects
-    unassigned_list = []
-    for section_data in result["unassigned_sections"]:
-        # Calculate weekly hours from timeslots
-        timeslots = section_data.get("timeslots", [])
-        weekly_hours = sum(
-            ts.get("end_hour", 0) - ts.get("start_hour", 0)
-            for ts in timeslots
-            if isinstance(ts, dict)
-        )
-        # Format timeslots as readable strings
-        timeslot_strs = [
-            f"Day {ts.get('day', '?')}: {ts.get('start_hour', 0):.1f}-{ts.get('end_hour', 0):.1f}"
-            for ts in timeslots
-            if isinstance(ts, dict)
-        ]
-        unassigned_list.append(
-            UnassignedSection(
-                section_id=section_data["section_id"],
-                course_code=section_data["course_code"],
-                enrollment=section_data["enrollment"],
-                weekly_hours=weekly_hours if weekly_hours > 0 else 1.0,
-                timeslots=timeslot_strs,
-            )
-        )
-    
+
+    # Construct UnassignedSection objects from core result
+    unassigned_list = [
+        UnassignedSection(**section_data)
+        for section_data in result["unassigned_sections"]
+    ]
+
     return UnassignedResponse(
         message=result["message"],
         unassigned_sections=unassigned_list,

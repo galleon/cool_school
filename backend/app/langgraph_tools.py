@@ -48,7 +48,7 @@ def show_schedule_overview() -> dict:
         assignments=result["assignments"],
         rooms=result["rooms"],
     )
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -56,7 +56,7 @@ def show_load_distribution() -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
     response = LoadDistributionResponse(**result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -67,7 +67,7 @@ def show_violations(type: str) -> dict:
         response = ViolationsResponse(type=type, violations=[])
     else:
         response = ViolationsResponse(**result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -75,7 +75,7 @@ def rebalance(max_load_hours: float = None) -> dict:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
     result = core_rebalance(max_load_hours)
     response = RebalancingResponse(**result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -86,7 +86,7 @@ def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
         response = SwapResponse(success=False, message=result["error"])
     else:
         response = SwapResponse(success=True, **result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -94,7 +94,7 @@ def show_unassigned() -> dict:
     """Find all unassigned course sections that need teacher assignments."""
     result = core_show_unassigned()
     response = UnassignedResponse(**result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 @tool
@@ -105,7 +105,7 @@ def assign_section(section_id: str, teacher: str) -> dict:
         response = AssignmentResponse(success=False, message=result["error"])
     else:
         response = AssignmentResponse(success=True, **result)
-    return response.model_dump(mode='json')
+    return response.model_dump(mode="json")
 
 
 # Export all tools in a list for easy import

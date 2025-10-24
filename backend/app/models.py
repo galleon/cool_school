@@ -75,10 +75,6 @@ class TimeSlot(BaseModel):
         end_time = f"{int(self.end_hour):02d}:{int((self.end_hour % 1) * 60):02d}"
         return f"{day_name} {start_time}-{end_time}"
 
-    class Config:
-        use_enum_values = True
-        validate_assignment = True
-
 
 class Teacher(BaseModel):
     """Represents a teacher with qualifications and availability."""
@@ -127,9 +123,6 @@ class Teacher(BaseModel):
         """Calculate total available teaching hours per week."""
         return sum((slot.end_hour - slot.start_hour) for slot in self.availability)
 
-    class Config:
-        validate_assignment = True
-
 
 class Room(BaseModel):
     """Represents a classroom or teaching space."""
@@ -162,9 +155,6 @@ class Room(BaseModel):
                     f"Unknown room feature: {feature}. Valid features: {', '.join(valid_features)}"
                 )
         return v
-
-    class Config:
-        validate_assignment = True
 
 
 class CourseSection(BaseModel):
@@ -206,9 +196,6 @@ class CourseSection(BaseModel):
         """Calculate total weekly hours for this section."""
         return sum((slot.end_hour - slot.start_hour) for slot in self.timeslots)
 
-    class Config:
-        validate_assignment = True
-
 
 class Assignment(BaseModel):
     """Represents an assignment of a teacher to a section in a room."""
@@ -242,9 +229,6 @@ class Assignment(BaseModel):
             raise ValueError("Cannot assign room without teacher")
         return self
 
-    class Config:
-        validate_assignment = True
-
 
 class TimelineEntryKind(str, Enum):
     """Types of timeline entries."""
@@ -277,10 +261,6 @@ class TimelineEntry(BaseModel):
         if v > now:
             raise ValueError("Timeline timestamp cannot be in the future")
         return v
-
-    class Config:
-        use_enum_values = True
-        validate_assignment = True
 
 
 class ScheduleState(BaseModel):
@@ -357,9 +337,6 @@ class ScheduleState(BaseModel):
         entry = TimelineEntry(kind=kind, entry=message)
         self.timeline.append(entry)
 
-    class Config:
-        validate_assignment = True
-
 
 # Example usage and validation
 if __name__ == "__main__":
@@ -367,6 +344,7 @@ if __name__ == "__main__":
     teacher = Teacher(
         id="t_alice",
         name="Dr. Alice Smith",
+        email="alice@example.com",
         max_load_hours=12.0,
         qualified_courses={"CS101", "CS102"},
         availability=[
