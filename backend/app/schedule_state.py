@@ -16,8 +16,6 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-
-
 class ScheduleManager:
     """Manages teacher-course assignments and timetabling."""
 
@@ -32,6 +30,7 @@ class ScheduleManager:
             "t_alice": Teacher(
                 id="t_alice",
                 name="Alice",
+                email="alice@university.edu",
                 max_load_hours=12.0,
                 qualified_courses={"CS101", "CS102"},
                 availability=[
@@ -42,6 +41,7 @@ class ScheduleManager:
             "t_bob": Teacher(
                 id="t_bob",
                 name="Bob",
+                email="bob@university.edu",
                 max_load_hours=12.0,
                 qualified_courses={"CS101", "CS102"},  # Now Bob can teach CS102 too
                 availability=[TimeSlot(day=1, start_hour=9.0, end_hour=15.0)],
@@ -49,6 +49,7 @@ class ScheduleManager:
             "t_chen": Teacher(
                 id="t_chen",
                 name="Chen",
+                email="chen@university.edu",
                 max_load_hours=12.0,
                 qualified_courses={"MATH201"},
                 availability=[TimeSlot(day=3, start_hour=9.0, end_hour=17.0)],
