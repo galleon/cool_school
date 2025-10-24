@@ -108,7 +108,7 @@ class ScheduleManager:
         assignments = {
             "CS101-A": Assignment(section_id="CS101-A", teacher_id="t_alice", room_id="r101"),
             "CS101-B": Assignment(
-                section_id="CS101-B", teacher_id=None, room_id="r101"
+                section_id="CS101-B", teacher_id=None, room_id=None
             ),  # Unassigned initially
             "CS102-A": Assignment(section_id="CS102-A", teacher_id="t_alice", room_id="lab1"),
             "CS102-B": Assignment(
