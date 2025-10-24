@@ -11,14 +11,14 @@ from typing import Any
 
 from fastapi import APIRouter, Query
 
-from .schemas import (
+from ..schemas import (
     AssignSectionRequest,
     HealthResponse,
     RebalanceRequest,
     ScheduleStateResponse,
     SwapRequest,
 )
-from .schedule_state import SCHEDULE_MANAGER
+from ..schedule_state import SCHEDULE_MANAGER
 from .tool_responses import (
     AssignmentResponse,
     RebalancingResponse,
