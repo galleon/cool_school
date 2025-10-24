@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 class WeekDay(int, Enum):
@@ -27,6 +27,8 @@ class WeekDay(int, Enum):
 
 class TimeSlot(BaseModel):
     """Represents a time slot for scheduling with validation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     day: WeekDay = Field(..., description="Day of the week (1=Monday, 7=Sunday)")
     start_hour: float = Field(
@@ -81,8 +83,11 @@ class TimeSlot(BaseModel):
 class Teacher(BaseModel):
     """Represents a teacher with qualifications and availability."""
 
+    model_config = ConfigDict(extra="forbid")
+
     id: str = Field(..., min_length=1, max_length=50, description="Unique teacher identifier")
     name: str = Field(..., min_length=1, max_length=100, description="Teacher's full name")
+    email: EmailStr = Field(..., description="Teacher's email address")
     max_load_hours: float = Field(
         ..., gt=0.0, le=40.0, description="Maximum teaching hours per week"
     )
@@ -129,6 +134,8 @@ class Teacher(BaseModel):
 class Room(BaseModel):
     """Represents a classroom or teaching space."""
 
+    model_config = ConfigDict(extra="forbid")
+
     id: str = Field(..., min_length=1, max_length=50, description="Unique room identifier")
     capacity: int = Field(..., gt=0, le=1000, description="Maximum number of students")
     features: set[str] = Field(
@@ -162,6 +169,8 @@ class Room(BaseModel):
 
 class CourseSection(BaseModel):
     """Represents a specific section of a course."""
+
+    model_config = ConfigDict(extra="forbid")
 
     id: str = Field(..., min_length=1, max_length=50, description="Unique section identifier")
     course_code: str = Field(
@@ -203,6 +212,8 @@ class CourseSection(BaseModel):
 
 class Assignment(BaseModel):
     """Represents an assignment of a teacher to a section in a room."""
+
+    model_config = ConfigDict(extra="forbid")
 
     section_id: str = Field(..., min_length=1, description="ID of the assigned section")
     teacher_id: str | None = Field(
@@ -248,6 +259,8 @@ class TimelineEntryKind(str, Enum):
 class TimelineEntry(BaseModel):
     """Represents an entry in the scheduling timeline/audit log."""
 
+    model_config = ConfigDict(extra="forbid")
+
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), description="When the event occurred"
     )
@@ -272,6 +285,8 @@ class TimelineEntry(BaseModel):
 
 class ScheduleState(BaseModel):
     """Complete state of the scheduling system."""
+
+    model_config = ConfigDict(extra="forbid")
 
     teachers: dict[str, Teacher] = Field(
         default_factory=dict, description="All teachers indexed by ID"
