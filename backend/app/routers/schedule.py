@@ -90,9 +90,21 @@ async def get_schedule_overview() -> ScheduleOverviewResponse:
         ScheduleOverviewResponse: Schedule overview with teacher load info.
     """
     from ..core_tools import core_show_schedule_overview
+    from ..tool_responses import TeacherLoadInfo
 
     result = core_show_schedule_overview()
-    return ScheduleOverviewResponse(**result)
+    # Construct TeacherLoadInfo objects from the teachers dict
+    teachers_with_info = {
+        tid: TeacherLoadInfo(**teacher_data)
+        for tid, teacher_data in result["teachers"].items()
+    }
+    return ScheduleOverviewResponse(
+        message=result["message"],
+        teachers=teachers_with_info,
+        sections=result["sections"],
+        assignments=result["assignments"],
+        rooms=result["rooms"],
+    )
 
 
 @router.get(
@@ -109,9 +121,40 @@ async def get_unassigned_sections() -> UnassignedResponse:
         UnassignedResponse: List of sections awaiting assignment.
     """
     from ..core_tools import core_show_unassigned
+    from ..tool_responses import UnassignedSection
 
     result = core_show_unassigned()
-    return UnassignedResponse(**result)
+    
+    # Construct UnassignedSection objects
+    unassigned_list = []
+    for section_data in result["unassigned_sections"]:
+        # Calculate weekly hours from timeslots
+        timeslots = section_data.get("timeslots", [])
+        weekly_hours = sum(
+            ts.get("end_hour", 0) - ts.get("start_hour", 0)
+            for ts in timeslots
+            if isinstance(ts, dict)
+        )
+        # Format timeslots as readable strings
+        timeslot_strs = [
+            f"Day {ts.get('day', '?')}: {ts.get('start_hour', 0):.1f}-{ts.get('end_hour', 0):.1f}"
+            for ts in timeslots
+            if isinstance(ts, dict)
+        ]
+        unassigned_list.append(
+            UnassignedSection(
+                section_id=section_data["section_id"],
+                course_code=section_data["course_code"],
+                enrollment=section_data["enrollment"],
+                weekly_hours=weekly_hours if weekly_hours > 0 else 1.0,
+                timeslots=timeslot_strs,
+            )
+        )
+    
+    return UnassignedResponse(
+        message=result["message"],
+        unassigned_sections=unassigned_list,
+    )
 
 
 # ============================================================================
