@@ -19,7 +19,7 @@ from ..schemas import (
     SwapRequest,
 )
 from ..schedule_state import SCHEDULE_MANAGER
-from .tool_responses import (
+from ..tool_responses import (
     AssignmentResponse,
     RebalancingResponse,
     ScheduleOverviewResponse,
@@ -89,7 +89,7 @@ async def get_schedule_overview() -> ScheduleOverviewResponse:
     Returns:
         ScheduleOverviewResponse: Schedule overview with teacher load info.
     """
-    from .core_tools import core_show_schedule_overview
+    from ..core_tools import core_show_schedule_overview
 
     result = core_show_schedule_overview()
     return ScheduleOverviewResponse(**result)
@@ -108,7 +108,7 @@ async def get_unassigned_sections() -> UnassignedResponse:
     Returns:
         UnassignedResponse: List of sections awaiting assignment.
     """
-    from .core_tools import core_show_unassigned
+    from ..core_tools import core_show_unassigned
 
     result = core_show_unassigned()
     return UnassignedResponse(**result)
@@ -135,7 +135,7 @@ async def assign_section(request: AssignSectionRequest) -> AssignmentResponse:
     Returns:
         AssignmentResponse: Result of the assignment operation.
     """
-    from .core_tools import core_assign_section
+    from ..core_tools import core_assign_section
 
     result = core_assign_section(request.section_id, request.teacher)
     if "error" in result:
@@ -159,7 +159,7 @@ async def swap_section(request: SwapRequest) -> SwapResponse:
     Returns:
         SwapResponse: Result of the swap operation.
     """
-    from .core_tools import core_swap
+    from ..core_tools import core_swap
 
     result = core_swap(request.section_id, request.from_teacher, request.to_teacher)
     if "error" in result:
@@ -183,7 +183,7 @@ async def rebalance_assignments(request: RebalanceRequest) -> RebalancingRespons
     Returns:
         RebalancingResponse: Changes made during rebalancing with updated statistics.
     """
-    from .core_tools import core_rebalance
+    from ..core_tools import core_rebalance
 
     result = core_rebalance(request.max_load_hours)
     return RebalancingResponse(**result)
