@@ -7,7 +7,7 @@ ensuring consistent structure and enabling proper API documentation.
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class TeacherLoadInfo(BaseModel):
@@ -49,7 +49,9 @@ class ViolationInfo(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    teacher_name: str = Field(..., min_length=1, max_length=100, description="Name of the teacher involved")
+    teacher_name: str = Field(
+        ..., min_length=1, max_length=100, description="Name of the teacher involved"
+    )
     teacher_id: str = Field(..., min_length=1, description="ID of the teacher involved")
     current_load: float = Field(..., ge=0.0, description="Current teaching load")
     max_load: float | None = Field(
@@ -65,11 +67,13 @@ class ViolationsResponse(BaseModel):
 
     type: str = Field(..., min_length=1, description="Type of violation ('overload' or 'conflict')")
     violations: list[ViolationInfo] = Field(..., description="List of detected violations")
-    count: int = Field(..., ge=0, description="Number of violations found")
+    count: int = Field(default=0, ge=0, description="Number of violations found")
 
-    def __init__(self, **data):
-        super().__init__(**data)
+    @model_validator(mode="after")
+    def compute_count(self) -> "ViolationsResponse":
+        """Compute count from violations list."""
         self.count = len(self.violations)
+        return self
 
 
 class RebalancingResult(BaseModel):
@@ -147,11 +151,13 @@ class UnassignedResponse(BaseModel):
     unassigned_sections: list[UnassignedSection] = Field(
         ..., description="List of unassigned sections"
     )
-    count: int = Field(..., ge=0, description="Number of unassigned sections")
+    count: int = Field(default=0, ge=0, description="Number of unassigned sections")
 
-    def __init__(self, **data):
-        super().__init__(**data)
+    @model_validator(mode="after")
+    def compute_count(self) -> "UnassignedResponse":
+        """Compute count from unassigned_sections list."""
         self.count = len(self.unassigned_sections)
+        return self
 
 
 class AssignmentResult(BaseModel):
@@ -161,7 +167,9 @@ class AssignmentResult(BaseModel):
 
     section_id: str = Field(..., min_length=1, description="ID of the assigned section")
     teacher_id: str = Field(..., min_length=1, description="ID of the assigned teacher")
-    teacher_name: str = Field(..., min_length=1, max_length=100, description="Name of the assigned teacher")
+    teacher_name: str = Field(
+        ..., min_length=1, max_length=100, description="Name of the assigned teacher"
+    )
     teacher_new_load: float = Field(..., ge=0.0, description="Teacher's load after assignment")
     section_hours: float = Field(..., gt=0.0, description="Weekly hours for the assigned section")
 
