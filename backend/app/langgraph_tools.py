@@ -25,6 +25,7 @@ from .core_tools import (
 )
 from .tool_responses import (
     ScheduleOverviewResponse,
+    TeacherLoadInfo,
     LoadDistributionResponse,
     ViolationsResponse,
     RebalancingResponse,
@@ -36,60 +37,75 @@ from .tool_responses import (
 
 
 @tool
-def show_schedule_overview() -> ScheduleOverviewResponse:
+def show_schedule_overview() -> dict:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
     result = core_show_schedule_overview()
-    return ScheduleOverviewResponse(**result)
+    # Return as dict for JSON serialization
+    response = ScheduleOverviewResponse(
+        message=result["message"],
+        teachers={tid: TeacherLoadInfo(**td) for tid, td in result["teachers"].items()},
+        sections=result["sections"],
+        assignments=result["assignments"],
+        rooms=result["rooms"],
+    )
+    return response.model_dump()
 
 
 @tool
-def show_load_distribution() -> LoadDistributionResponse:
+def show_load_distribution() -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
-    return LoadDistributionResponse(**result)
+    response = LoadDistributionResponse(**result)
+    return response.model_dump()
 
 
 @tool
-def show_violations(type: str) -> ViolationsResponse:
+def show_violations(type: str) -> dict:
     """Show violations of a given type: overload or conflict."""
     result = core_show_violations(type)
     if "error" in result:
-        # Handle error case - convert to ToolErrorResponse and then wrap in ViolationsResponse
-        # For now, return a violations response with empty violations
-        return ViolationsResponse(type=type, violations=[])
-    return ViolationsResponse(**result)
+        response = ViolationsResponse(type=type, violations=[])
+    else:
+        response = ViolationsResponse(**result)
+    return response.model_dump()
 
 
 @tool
-def rebalance(max_load_hours: float = None) -> RebalancingResponse:
+def rebalance(max_load_hours: float = None) -> dict:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
     result = core_rebalance(max_load_hours)
-    return RebalancingResponse(**result)
+    response = RebalancingResponse(**result)
+    return response.model_dump()
 
 
 @tool
-def swap(section_id: str, from_teacher: str, to_teacher: str) -> SwapResponse:
+def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
     """Swap a section from one teacher to another by names or IDs."""
     result = core_swap(section_id, from_teacher, to_teacher)
     if "error" in result:
-        return SwapResponse(success=False, message=result["error"])
-    return SwapResponse(success=True, **result)
+        response = SwapResponse(success=False, message=result["error"])
+    else:
+        response = SwapResponse(success=True, **result)
+    return response.model_dump()
 
 
 @tool
-def show_unassigned() -> UnassignedResponse:
+def show_unassigned() -> dict:
     """Find all unassigned course sections that need teacher assignments."""
     result = core_show_unassigned()
-    return UnassignedResponse(**result)
+    response = UnassignedResponse(**result)
+    return response.model_dump()
 
 
 @tool
-def assign_section(section_id: str, teacher: str) -> AssignmentResponse:
+def assign_section(section_id: str, teacher: str) -> dict:
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
     if "error" in result:
-        return AssignmentResponse(success=False, message=result["error"])
-    return AssignmentResponse(success=True, **result)
+        response = AssignmentResponse(success=False, message=result["error"])
+    else:
+        response = AssignmentResponse(success=True, **result)
+    return response.model_dump()
 
 
 # Export all tools in a list for easy import
