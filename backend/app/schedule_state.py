@@ -140,13 +140,13 @@ class ScheduleManager:
     def get_state(self) -> dict[str, Any]:
         """Get the current state as a dictionary."""
         return {
-            "teachers": {tid: teacher.to_dict() for tid, teacher in self.state.teachers.items()},
-            "rooms": {rid: room.to_dict() for rid, room in self.state.rooms.items()},
-            "sections": {sid: section.to_dict() for sid, section in self.state.sections.items()},
+            "teachers": {tid: teacher.model_dump() for tid, teacher in self.state.teachers.items()},
+            "rooms": {rid: room.model_dump() for rid, room in self.state.rooms.items()},
+            "sections": {sid: section.model_dump() for sid, section in self.state.sections.items()},
             "assignments": {
-                aid: assignment.to_dict() for aid, assignment in self.state.assignments.items()
+                aid: assignment.model_dump() for aid, assignment in self.state.assignments.items()
             },
-            "timeline": self.state.timeline,
+            "timeline": [entry.model_dump() for entry in self.state.timeline],
         }
 
     def compute_teacher_load(self, teacher: Teacher) -> float:
