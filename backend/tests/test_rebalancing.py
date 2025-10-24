@@ -24,18 +24,21 @@ class TestRebalancing:
             "t_alice": Teacher(
                 id="t_alice",
                 name="Alice",
+                email="alice@university.edu",
                 max_load_hours=8.0,
                 qualified_courses={"CS101", "CS102"},
             ),
             "t_bob": Teacher(
                 id="t_bob",
                 name="Bob",
+                email="bob@university.edu",
                 max_load_hours=8.0,
                 qualified_courses={"CS101", "CS102"},
             ),
             "t_chen": Teacher(
                 id="t_chen",
                 name="Chen",
+                email="chen@university.edu",
                 max_load_hours=6.0,
                 qualified_courses={"MATH201"},
             ),

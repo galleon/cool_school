@@ -35,9 +35,21 @@ def convert_legacy_teacher(legacy_data: dict[str, Any]) -> Teacher:
     for slot_data in legacy_data.get("availability", []):
         availability.append(convert_legacy_timeslot(slot_data))
 
+    # Generate email from name if not provided (legacy data won't have email)
+    email = legacy_data.get("email")
+    if not email:
+        # Create email from name: "Dr. Alice Smith" -> "alice.smith@university.edu"
+        name_lower = legacy_data["name"].lower()
+        # Remove titles like "Dr.", "Prof.", etc.
+        name_parts = name_lower.split()
+        if name_parts[0] in ("dr.", "prof.", "mr.", "ms.", "mrs."):
+            name_parts = name_parts[1:]
+        email = ".".join(name_parts) + "@university.edu"
+
     return Teacher(
         id=legacy_data["id"],
         name=legacy_data["name"],
+        email=email,
         max_load_hours=legacy_data["max_load_hours"],
         qualified_courses=set(legacy_data.get("qualified_courses", [])),
         availability=availability,

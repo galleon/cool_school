@@ -25,6 +25,7 @@ def test_basic_models():
     teacher = Teacher(
         id="t1",
         name="Dr. Smith",
+        email="smith@university.edu",
         max_load_hours=20.0,
         qualified_courses={"CS101", "CS102"},
         availability=[timeslot],
