@@ -26,6 +26,7 @@ from chatkit.server import ChatKitServer, StreamingResult
 from .schedule_state import SCHEDULE_MANAGER
 from .memory_store import MemoryStore
 from .langgraph_agent import langgraph_agent
+from .routers import schedule_router
 
 DEFAULT_THREAD_ID = "demo_default_thread"
 
@@ -204,6 +205,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers with proper Pydantic response models
+app.include_router(schedule_router)
+
 
 def get_server() -> LangGraphSchedulingServer:
     return langgraph_scheduling_server
@@ -226,16 +230,5 @@ def _thread_param(thread_id: str | None) -> str:
     return thread_id or DEFAULT_THREAD_ID
 
 
-@app.get("/schedule/state")
-async def schedule_snapshot(
-    thread_id: str | None = Query(None, description="ChatKit thread identifier"),
-    server: LangGraphSchedulingServer = Depends(get_server),
-) -> dict[str, Any]:
-    """Get the current schedule state."""
-    data = SCHEDULE_MANAGER.get_state()
-    return {"schedule": data}
-
-
-@app.get("/schedule/health")
-async def health_check() -> dict[str, str]:
-    return {"status": "healthy", "agent": "langgraph"}
+# Note: /schedule/state and /schedule/health are now served by the schedule_router
+# Additional scheduling endpoints are available through the schedule_router
