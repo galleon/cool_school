@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from .models import TimeSlot, Teacher, Room, CourseSection, Assignment, ScheduleState
+from .models import TimeSlot, Teacher, Room, CourseSection, Assignment, ScheduleState, TimelineEntryKind
 from datetime import datetime, timezone
 from typing import Any
 
@@ -127,7 +127,7 @@ class ScheduleManager:
         self.state.sections = sections
         self.state.assignments = assignments
 
-        self.state.log("Scheduling data loaded", "system")
+        self.state.add_timeline_entry(TimelineEntryKind.SYSTEM, "Scheduling data loaded")
 
     def get_state(self) -> dict[str, Any]:
         """Get the current state as a dictionary."""
@@ -236,8 +236,8 @@ class ScheduleManager:
         from_teacher_name = self.state.teachers[from_teacher_id].name
         to_teacher_name = self.state.teachers[to_teacher_id].name
 
-        self.state.log(
-            f"Swapped {section_id} from {from_teacher_name} to {to_teacher_name}", "assignment"
+        self.state.add_timeline_entry(
+            TimelineEntryKind.ASSIGNMENT, f"Swapped {section_id} from {from_teacher_name} to {to_teacher_name}"
         )
 
         return True, "Swap successful"
@@ -302,9 +302,9 @@ class ScheduleManager:
                         }
                     )
 
-                    self.state.log(
+                    self.state.add_timeline_entry(
+                        TimelineEntryKind.REBALANCING,
                         f"Rebalanced: moved {assignment.section_id} from {old_teacher_name} to {new_teacher_name}",
-                        "assignment",
                     )
 
         # Return current state (which has been modified)
@@ -314,7 +314,7 @@ class ScheduleManager:
         """Perform optimal rebalancing using OR-Tools to minimize load variance."""
         # Check if OR-Tools is available
         if pywraplp is None:
-            self.state.log("OR-Tools not available, falling back to greedy rebalancing", "system")
+            self.state.add_timeline_entry(TimelineEntryKind.SYSTEM, "OR-Tools not available, falling back to greedy rebalancing")
             return self.greedy_rebalance(max_load_hours)
 
         # Create a copy of current state to work with
@@ -324,8 +324,8 @@ class ScheduleManager:
         solver = pywraplp.Solver.CreateSolver("SCIP")
         if not solver:
             # Fall back to greedy if OR-Tools solver not available
-            self.state.log(
-                "OR-Tools solver not available, falling back to greedy rebalancing", "system"
+            self.state.add_timeline_entry(
+                TimelineEntryKind.SYSTEM, "OR-Tools solver not available, falling back to greedy rebalancing"
             )
             return self.greedy_rebalance(max_load_hours)
 
@@ -418,9 +418,9 @@ class ScheduleManager:
                                 else "Unassigned"
                             )
                             new_name = self.state.teachers[teacher_id].name
-                            new_state.log(
+                            new_state.add_timeline_entry(
+                                TimelineEntryKind.REBALANCING,
                                 f"OR-Tools rebalanced: moved {section_id} from {old_name} to {new_name}",
-                                "assignment",
                             )
 
             # Update the manager's state
@@ -428,7 +428,7 @@ class ScheduleManager:
             return new_state
         else:
             # If no feasible solution found, fall back to greedy
-            new_state.log("OR-Tools rebalancing failed, falling back to greedy", "system")
+            new_state.add_timeline_entry(TimelineEntryKind.SYSTEM, "OR-Tools rebalancing failed, falling back to greedy")
             return self.greedy_rebalance(max_load_hours)
 
     def _compute_load_for_state(self, state: ScheduleState, teacher: Teacher) -> float:
