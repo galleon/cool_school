@@ -233,10 +233,18 @@ class TestRebalancing:
         # Create teachers
         self.manager.state.teachers = {
             "t_alice": Teacher(
-                id="t_alice", name="Alice", max_load_hours=4.0, qualified_courses={"CS101"}
+                id="t_alice",
+                name="Alice",
+                email="alice@university.edu",
+                max_load_hours=4.0,
+                qualified_courses={"CS101"},
             ),
             "t_bob": Teacher(
-                id="t_bob", name="Bob", max_load_hours=4.0, qualified_courses={"CS101"}
+                id="t_bob",
+                name="Bob",
+                email="bob@university.edu",
+                max_load_hours=4.0,
+                qualified_courses={"CS101"},
             ),
         }
 

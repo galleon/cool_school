@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import copy
-from .models import TimeSlot, Teacher, Room, CourseSection, Assignment, ScheduleState, TimelineEntryKind
+from .models import (
+    TimeSlot,
+    Teacher,
+    Room,
+    CourseSection,
+    Assignment,
+    ScheduleState,
+    TimelineEntryKind,
+)
 from datetime import datetime, timezone
 from typing import Any
 
@@ -147,7 +155,7 @@ class ScheduleManager:
         for assignment in self.state.assignments.values():
             if assignment.teacher_id == teacher.id:
                 section = self.state.sections[assignment.section_id]
-                total_hours += section.get_credit_hours()
+                total_hours += section.compute_weekly_hours()
         return total_hours
 
     def find_overload(self) -> list[tuple[str, float, float]]:
@@ -219,7 +227,7 @@ class ScheduleManager:
         section = self.state.sections[section_id]
         current_load = self.compute_teacher_load(to_teacher)
 
-        if current_load + section.get_credit_hours() > to_teacher.max_load_hours:
+        if current_load + section.compute_weekly_hours() > to_teacher.max_load_hours:
             return False, f"Assignment would overload teacher {to_teacher.name}"
 
         # Check if teacher is qualified for the course
@@ -237,7 +245,8 @@ class ScheduleManager:
         to_teacher_name = self.state.teachers[to_teacher_id].name
 
         self.state.add_timeline_entry(
-            TimelineEntryKind.ASSIGNMENT, f"Swapped {section_id} from {from_teacher_name} to {to_teacher_name}"
+            TimelineEntryKind.ASSIGNMENT,
+            f"Swapped {section_id} from {from_teacher_name} to {to_teacher_name}",
         )
 
         return True, "Swap successful"
@@ -258,7 +267,7 @@ class ScheduleManager:
                 current_teacher = self.state.teachers[assignment.teacher_id]
                 current_load = teacher_loads[assignment.teacher_id]
                 section = self.state.sections[assignment.section_id]
-                section_hours = section.get_credit_hours()
+                section_hours = section.compute_weekly_hours()
 
                 # Look for a teacher with significantly lower load who can take this section
                 best_teacher = None
@@ -314,7 +323,10 @@ class ScheduleManager:
         """Perform optimal rebalancing using OR-Tools to minimize load variance."""
         # Check if OR-Tools is available
         if pywraplp is None:
-            self.state.add_timeline_entry(TimelineEntryKind.SYSTEM, "OR-Tools not available, falling back to greedy rebalancing")
+            self.state.add_timeline_entry(
+                TimelineEntryKind.SYSTEM,
+                "OR-Tools not available, falling back to greedy rebalancing",
+            )
             return self.greedy_rebalance(max_load_hours)
 
         # Create a copy of current state to work with
@@ -325,7 +337,8 @@ class ScheduleManager:
         if not solver:
             # Fall back to greedy if OR-Tools solver not available
             self.state.add_timeline_entry(
-                TimelineEntryKind.SYSTEM, "OR-Tools solver not available, falling back to greedy rebalancing"
+                TimelineEntryKind.SYSTEM,
+                "OR-Tools solver not available, falling back to greedy rebalancing",
             )
             return self.greedy_rebalance(max_load_hours)
 
@@ -369,14 +382,14 @@ class ScheduleManager:
             teacher = self.state.teachers[teacher_id]
             max_load = max_load_hours if max_load_hours else teacher.max_load_hours
             teacher_load = sum(
-                x[section_id][teacher_id] * self.state.sections[section_id].get_credit_hours()
+                x[section_id][teacher_id] * self.state.sections[section_id].compute_weekly_hours()
                 for section_id in sections
             )
             solver.Add(teacher_load <= max_load)
 
         # Objective: Minimize load variance (using auxiliary variables)
         # First, calculate total load and number of teachers for average
-        total_hours = sum(section.get_credit_hours() for section in self.state.sections.values())
+        total_hours = sum(section.compute_weekly_hours() for section in self.state.sections.values())
         num_teachers = len(teachers)
         target_load = total_hours / num_teachers
 
@@ -385,7 +398,7 @@ class ScheduleManager:
         for teacher_id in teachers:
             deviations[teacher_id] = solver.NumVar(0, solver.infinity(), f"dev_{teacher_id}")
             teacher_load = sum(
-                x[section_id][teacher_id] * self.state.sections[section_id].get_credit_hours()
+                x[section_id][teacher_id] * self.state.sections[section_id].compute_weekly_hours()
                 for section_id in sections
             )
             # |load - target| = deviation
@@ -428,7 +441,9 @@ class ScheduleManager:
             return new_state
         else:
             # If no feasible solution found, fall back to greedy
-            new_state.add_timeline_entry(TimelineEntryKind.SYSTEM, "OR-Tools rebalancing failed, falling back to greedy")
+            new_state.add_timeline_entry(
+                TimelineEntryKind.SYSTEM, "OR-Tools rebalancing failed, falling back to greedy"
+            )
             return self.greedy_rebalance(max_load_hours)
 
     def _compute_load_for_state(self, state: ScheduleState, teacher: Teacher) -> float:
@@ -437,7 +452,7 @@ class ScheduleManager:
         for assignment in state.assignments.values():
             if assignment.teacher_id == teacher.id:
                 section = state.sections[assignment.section_id]
-                total_hours += section.get_credit_hours()
+                total_hours += section.compute_weekly_hours()
         return total_hours
 
 
