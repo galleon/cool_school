@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import asdict, dataclass, field
+from .models import TimeSlot, Teacher, Room, CourseSection, Assignment, ScheduleState
 from datetime import datetime, timezone
 from typing import Any
 
@@ -16,101 +16,6 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-@dataclass(slots=True)
-class TimeSlot:
-    day: int  # 1=Monday, 2=Tuesday, etc.
-    start_hour: float  # 9.0 = 9:00 AM
-    end_hour: float
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    def __str__(self) -> str:
-        days = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        day_name = days[self.day] if 1 <= self.day <= 7 else f"Day{self.day}"
-        start_time = f"{int(self.start_hour):02d}:{int((self.start_hour % 1) * 60):02d}"
-        end_time = f"{int(self.end_hour):02d}:{int((self.end_hour % 1) * 60):02d}"
-        return f"{day_name} {start_time}-{end_time}"
-
-
-@dataclass(slots=True)
-class Teacher:
-    id: str
-    name: str
-    max_load_hours: float
-    qualified_courses: set[str] = field(default_factory=set)
-    availability: list[TimeSlot] = field(default_factory=list)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "name": self.name,
-            "max_load_hours": self.max_load_hours,
-            "qualified_courses": list(self.qualified_courses),
-            "availability": [slot.to_dict() for slot in self.availability],
-        }
-
-
-@dataclass(slots=True)
-class Room:
-    id: str
-    capacity: int
-    features: Set[str] = field(default_factory=set)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "capacity": self.capacity,
-            "features": list(self.features),
-        }
-
-
-@dataclass(slots=True)
-class CourseSection:
-    id: str
-    course_code: str
-    timeslots: List[TimeSlot]
-    enrollment: int
-    required_feature: str | None = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "course_code": self.course_code,
-            "timeslots": [slot.to_dict() for slot in self.timeslots],
-            "enrollment": self.enrollment,
-            "required_feature": self.required_feature,
-        }
-
-    def get_credit_hours(self) -> float:
-        """Calculate credit hours based on timeslots duration."""
-        total_hours = 0.0
-        for slot in self.timeslots:
-            total_hours += slot.end_hour - slot.start_hour
-        return total_hours
-
-
-@dataclass(slots=True)
-class Assignment:
-    section_id: str
-    teacher_id: str | None = None
-    room_id: str | None = None
-    assigned_at: str = field(default_factory=_now_iso)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
-
-
-@dataclass(slots=True)
-class ScheduleState:
-    teachers: Dict[str, Teacher] = field(default_factory=dict)
-    rooms: Dict[str, Room] = field(default_factory=dict)
-    sections: Dict[str, CourseSection] = field(default_factory=dict)
-    assignments: Dict[str, Assignment] = field(default_factory=dict)
-    timeline: List[Dict[str, Any]] = field(default_factory=list)
-
-    def log(self, entry: str, kind: str = "info") -> None:
-        self.timeline.insert(0, {"timestamp": _now_iso(), "kind": kind, "entry": entry})
 
 
 class ScheduleManager:
@@ -223,7 +128,7 @@ class ScheduleManager:
 
         self.state.log("Scheduling data loaded", "system")
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get the current state as a dictionary."""
         return {
             "teachers": {tid: teacher.to_dict() for tid, teacher in self.state.teachers.items()},
@@ -244,7 +149,7 @@ class ScheduleManager:
                 total_hours += section.get_credit_hours()
         return total_hours
 
-    def find_overload(self) -> List[tuple[str, float, float]]:
+    def find_overload(self) -> list[tuple[str, float, float]]:
         """Find teachers who are over their maximum load."""
         overloads = []
         for teacher_id, teacher in self.state.teachers.items():
@@ -253,7 +158,7 @@ class ScheduleManager:
                 overloads.append((teacher_id, current_load, teacher.max_load_hours))
         return overloads
 
-    def find_conflicting_assignments(self) -> List[tuple[str, str]]:
+    def find_conflicting_assignments(self) -> list[tuple[str, str]]:
         """Find teachers with conflicting time slots."""
         conflicts = []
         teacher_schedules = {}
