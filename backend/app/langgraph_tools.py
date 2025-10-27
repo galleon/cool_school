@@ -45,7 +45,7 @@ from .tool_responses import (
 
 
 @tool(args_schema=ShowScheduleOverviewInput)
-def show_schedule_overview() -> dict:
+def show_schedule_overview(thread_id: str | None = None) -> dict:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
     result = core_show_schedule_overview()
     # Return as dict for JSON serialization
@@ -60,7 +60,7 @@ def show_schedule_overview() -> dict:
 
 
 @tool(args_schema=ShowLoadDistributionInput)
-def show_load_distribution() -> dict:
+def show_load_distribution(thread_id: str | None = None) -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
     response = LoadDistributionResponse(**result)
@@ -68,7 +68,7 @@ def show_load_distribution() -> dict:
 
 
 @tool(args_schema=ShowViolationsInput)
-def show_violations(type: str) -> dict:
+def show_violations(type: str, thread_id: str | None = None) -> dict:
     """Show violations of a given type: overload or conflict."""
     result = core_show_violations(type)
     if "error" in result:
@@ -79,7 +79,7 @@ def show_violations(type: str) -> dict:
 
 
 @tool(args_schema=RebalanceInput)
-def rebalance(max_load_hours: float = None) -> dict:
+def rebalance(max_load_hours: float = None, thread_id: str | None = None) -> dict:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
     result = core_rebalance(max_load_hours)
     response = RebalancingResponse(**result)
@@ -87,7 +87,7 @@ def rebalance(max_load_hours: float = None) -> dict:
 
 
 @tool(args_schema=SwapInput)
-def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
+def swap(section_id: str, from_teacher: str, to_teacher: str, thread_id: str | None = None) -> dict:
     """Swap a section from one teacher to another by names or IDs."""
     result = core_swap(section_id, from_teacher, to_teacher)
     if "error" in result:
@@ -102,7 +102,7 @@ def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
 
 
 @tool(args_schema=ShowUnassignedInput)
-def show_unassigned() -> dict:
+def show_unassigned(thread_id: str | None = None) -> dict:
     """Find all unassigned course sections that need teacher assignments."""
     result = core_show_unassigned()
     response = UnassignedResponse(**result)
@@ -110,7 +110,7 @@ def show_unassigned() -> dict:
 
 
 @tool(args_schema=AssignSectionInput)
-def assign_section(section_id: str, teacher: str) -> dict:
+def assign_section(section_id: str, teacher: str, thread_id: str | None = None) -> dict:
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
     if "error" in result:
