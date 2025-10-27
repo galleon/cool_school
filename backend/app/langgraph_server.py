@@ -96,9 +96,9 @@ class LangGraphChatKitAdapter:
                                     teacher_summary.append(
                                         f"  • {data['name']}: {data['current_load']:.1f}h / {data['max_load']}h ({data['utilization']})"
                                     )
-                                result_text += "\n\nTeacher Workloads:\n" + "\n".join(
-                                    teacher_summary
-                                ) + "\n"
+                                result_text += (
+                                    "\n\nTeacher Workloads:\n" + "\n".join(teacher_summary) + "\n"
+                                )
                         elif tool_name == "assign_section":
                             if "result" in result and result.get("success"):
                                 res = result["result"]
