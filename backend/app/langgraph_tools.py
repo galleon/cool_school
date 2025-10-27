@@ -15,28 +15,36 @@ except ImportError:
     LANGCHAIN_AVAILABLE = False
 
 from .core_tools import (
-    core_show_schedule_overview,
-    core_show_load_distribution,
-    core_show_violations,
-    core_rebalance,
-    core_swap,
-    core_show_unassigned,
     core_assign_section,
+    core_rebalance,
+    core_show_load_distribution,
+    core_show_schedule_overview,
+    core_show_unassigned,
+    core_show_violations,
+    core_swap,
+)
+from .langgraph_tool_inputs import (
+    AssignSectionInput,
+    RebalanceInput,
+    ShowLoadDistributionInput,
+    ShowScheduleOverviewInput,
+    ShowUnassignedInput,
+    ShowViolationsInput,
+    SwapInput,
 )
 from .tool_responses import (
-    ScheduleOverviewResponse,
-    TeacherLoadInfo,
-    LoadDistributionResponse,
-    ViolationsResponse,
-    RebalancingResponse,
-    SwapResponse,
-    UnassignedResponse,
     AssignmentResponse,
-    ToolErrorResponse,
+    LoadDistributionResponse,
+    RebalancingResponse,
+    ScheduleOverviewResponse,
+    SwapResponse,
+    TeacherLoadInfo,
+    UnassignedResponse,
+    ViolationsResponse,
 )
 
 
-@tool
+@tool(args_schema=ShowScheduleOverviewInput)
 def show_schedule_overview() -> dict:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
     result = core_show_schedule_overview()
@@ -51,7 +59,7 @@ def show_schedule_overview() -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=ShowLoadDistributionInput)
 def show_load_distribution() -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
@@ -59,7 +67,7 @@ def show_load_distribution() -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=ShowViolationsInput)
 def show_violations(type: str) -> dict:
     """Show violations of a given type: overload or conflict."""
     result = core_show_violations(type)
@@ -70,7 +78,7 @@ def show_violations(type: str) -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=RebalanceInput)
 def rebalance(max_load_hours: float = None) -> dict:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
     result = core_rebalance(max_load_hours)
@@ -78,7 +86,7 @@ def rebalance(max_load_hours: float = None) -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=SwapInput)
 def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
     """Swap a section from one teacher to another by names or IDs."""
     result = core_swap(section_id, from_teacher, to_teacher)
@@ -93,7 +101,7 @@ def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=ShowUnassignedInput)
 def show_unassigned() -> dict:
     """Find all unassigned course sections that need teacher assignments."""
     result = core_show_unassigned()
@@ -101,7 +109,7 @@ def show_unassigned() -> dict:
     return response.model_dump(mode="json")
 
 
-@tool
+@tool(args_schema=AssignSectionInput)
 def assign_section(section_id: str, teacher: str) -> dict:
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
