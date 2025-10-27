@@ -149,7 +149,7 @@ class StreamingLangGraphUniversityAgent:
         """Get system instructions for the agent."""
         # Get current schedule context
         schedule_context = format_schedule_context()
-        
+
         return f"""You are a scheduling assistant for teacher-course assignment and timetabling.
 
 {schedule_context}

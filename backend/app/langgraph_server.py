@@ -98,7 +98,7 @@ class LangGraphChatKitAdapter:
                                     )
                                 result_text += "\n\nTeacher Workloads:\n" + "\n".join(
                                     teacher_summary
-                                )
+                                ) + "\n"
                         elif tool_name == "assign_section":
                             if "result" in result and result.get("success"):
                                 res = result["result"]
