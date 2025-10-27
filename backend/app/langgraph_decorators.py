@@ -44,7 +44,12 @@ def list_lg_tools() -> dict:
     return {k: {"description": v.get("description")} for k, v in _LG_TOOL_REGISTRY.items()}
 
 
-def lg_function_tool(*, args_schema: type | None = None, name: Optional[str] = None, description: Optional[str] = None):
+def lg_function_tool(
+    *,
+    args_schema: type | None = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+):
     """Combined decorator that registers the underlying python function for
     direct LangGraph invocation (via `lg_tool`) and also wraps the function
     with LangChain's `@tool(...)` when that package is available.

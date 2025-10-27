@@ -22,7 +22,7 @@ from starlette.responses import JSONResponse
 from .config import settings
 
 from .memory_store import MemoryStore
-from .openai_agent import openai_agent
+from .openai_agent import scheduling_agent
 from .routers import schedule_router
 from .agent_utils import format_schedule_context
 

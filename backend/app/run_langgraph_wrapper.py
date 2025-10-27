@@ -35,7 +35,9 @@ class RunLanggraphContextWrapper(Generic[T]):
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_thread_id(cls, thread_id: str, agent_context: T | None = None, metadata: dict | None = None) -> "RunLanggraphContextWrapper":
+    def from_thread_id(
+        cls, thread_id: str, agent_context: T | None = None, metadata: dict | None = None
+    ) -> "RunLanggraphContextWrapper":
         """Create a RunLanggraphContextWrapper from a thread id.
 
         The signature mirrors the typical factory shape used by RunContextWrapper
