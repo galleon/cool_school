@@ -19,6 +19,7 @@ except ImportError:
 
 from .langgraph_tools import UNIVERSITY_TOOLS
 from .config import settings, get_llm_config
+from .agent_utils import format_schedule_context
 
 # Setup logging for this module
 logger = logging.getLogger(__name__)
@@ -146,13 +147,18 @@ class StreamingLangGraphUniversityAgent:
 
     def _get_system_instructions(self) -> str:
         """Get system instructions for the agent."""
-        return """You are a scheduling assistant for teacher-course assignment and timetabling.
+        # Get current schedule context
+        schedule_context = format_schedule_context()
+        
+        return f"""You are a scheduling assistant for teacher-course assignment and timetabling.
 
-Use the provided tools to answer questions about the university schedule concretely. Choose the most appropriate single tool for each request to avoid redundancy.
+{schedule_context}
+
+Use the provided tools to answer questions about the university schedule. Choose the most appropriate tool for each request to avoid redundancy.
 
 Available tools:
-- show_schedule_overview: Get a complete overview including teachers, workloads, sections, and assignments (use this for general overview requests)
-- show_load_distribution: Get ONLY a histogram and raw teacher load numbers (use only when specifically asked for distribution analysis)
+- show_schedule_overview: Get a complete overview including teachers, workloads, sections, and assignments
+- show_load_distribution: Get a histogram and raw teacher load numbers
 - show_violations: Check for overload or conflict violations
 - rebalance: Perform automatic rebalancing of teaching assignments
 - swap: Swap a section assignment between teachers
@@ -160,8 +166,8 @@ Available tools:
 - assign_section: Assign a section to a teacher
 
 Guidelines:
-- For "schedule overview" or "teacher workloads", use ONLY show_schedule_overview (it includes workload information)
-- For "load distribution" or "histogram", use ONLY show_load_distribution
+- For "schedule overview" or "teacher workloads", use show_schedule_overview
+- For "load distribution" or "histogram", use show_load_distribution
 - Don't call multiple tools for the same information
 - Keep responses concise and well-formatted
 

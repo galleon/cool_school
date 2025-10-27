@@ -94,27 +94,28 @@ class LangGraphChatKitAdapter:
                                 teacher_summary = []
                                 for tid, data in teachers.items():
                                     teacher_summary.append(
-                                        f"- **{data['name']}**: {data['current_load']:.1f}h/{data['max_load']} ({data['utilization']})"
+                                        f"  • {data['name']}: {data['current_load']:.1f}h / {data['max_load']}h ({data['utilization']})"
                                     )
-                                result_text += "\n\n**Teacher Workloads:**\n" + "\n".join(
+                                result_text += "\n\nTeacher Workloads:\n" + "\n".join(
                                     teacher_summary
                                 )
                         elif tool_name == "assign_section":
-                            if "section_id" in result and "teacher" in result:
-                                result_text = f"✅ **Successfully assigned** {result['section_id']} to **{result['teacher']}**. New load: **{result.get('new_load', 'N/A')}**"
+                            if "result" in result and result.get("success"):
+                                res = result["result"]
+                                result_text = f"✅ Successfully assigned {res['section_id']} to {res['teacher_name']}. New load: {res['teacher_new_load']:.1f}h"
                     elif "error" in result:
-                        result_text = f"❌ **Error:** {result['error']}"
+                        result_text = f"❌ Error: {result['error']}"
                     else:
                         # For other structured results, format them nicely
                         if tool_name == "show_load_distribution" and "loads" in result:
                             loads = result["loads"]
                             load_summary = "\n".join(
-                                [f"- **{name}**: {load:.1f}h" for name, load in loads.items()]
+                                [f"  • {name}: {load:.1f}h" for name, load in loads.items()]
                             )
-                            result_text = f"**Teaching Load Distribution:**\n{load_summary}"
+                            result_text = f"Teaching Load Distribution:\n{load_summary}"
                             # Don't include the image path in the response to avoid broken links
                             if "histogram_path" in result:
-                                result_text += "\n\n*Note: Load distribution histogram available*"
+                                result_text += "\n(Histogram image available)"
                         else:
                             # Filter out image paths and other non-user-friendly data
                             clean_result = {
