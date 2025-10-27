@@ -85,7 +85,11 @@ def swap(section_id: str, from_teacher: str, to_teacher: str) -> dict:
     if "error" in result:
         response = SwapResponse(success=False, message=result["error"])
     else:
-        response = SwapResponse(success=True, **result)
+        response = SwapResponse(
+            success=result.get("success", True),
+            message=result["message"],
+            result=result.get("result"),
+        )
     return response.model_dump(mode="json")
 
 
@@ -104,7 +108,9 @@ def assign_section(section_id: str, teacher: str) -> dict:
     if "error" in result:
         response = AssignmentResponse(success=False, message=result["error"])
     else:
-        response = AssignmentResponse(success=True, **result)
+        response = AssignmentResponse(
+            success=result["success"], message=result["message"], result=result.get("result")
+        )
     return response.model_dump(mode="json")
 
 

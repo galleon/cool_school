@@ -126,8 +126,7 @@ async def get_unassigned_sections() -> UnassignedResponse:
 
     # Construct UnassignedSection objects from core result
     unassigned_list = [
-        UnassignedSection(**section_data)
-        for section_data in result["unassigned_sections"]
+        UnassignedSection(**section_data) for section_data in result["unassigned_sections"]
     ]
 
     return UnassignedResponse(
@@ -162,7 +161,9 @@ async def assign_section(request: AssignSectionRequest) -> AssignmentResponse:
     result = core_assign_section(request.section_id, request.teacher)
     if "error" in result:
         return AssignmentResponse(success=False, message=result["error"])
-    return AssignmentResponse(success=True, message="Assignment successful", **result)
+    return AssignmentResponse(
+        success=result["success"], message=result["message"], result=result.get("result")
+    )
 
 
 @router.post(

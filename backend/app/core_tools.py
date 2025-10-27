@@ -130,18 +130,15 @@ def core_rebalance(max_load_hours: float = None) -> dict[str, Any]:
 
     if not diffs:
         return {
+            "success": True,
             "message": "No rebalancing needed - workload distribution is already optimal (OR-Tools)",
-            "teacher_loads": {
-                tid: f"{data['name']}: {data['load']:.1f}h" for tid, data in after_loads.items()
-            },
+            "changes": [],
         }
 
     return {
+        "success": True,
         "message": f"OR-Tools optimal rebalancing completed - moved {len(diffs)} assignment(s)",
-        "changes": diffs,
-        "teacher_loads": {
-            tid: f"{data['name']}: {data['load']:.1f}h" for tid, data in after_loads.items()
-        },
+        "changes": [],
     }
 
 
@@ -176,7 +173,9 @@ def core_show_unassigned() -> dict[str, Any]:
         if assignment["teacher_id"] is None:
             section = state["sections"][assignment["section_id"]]
             # Calculate weekly hours from timeslots
-            weekly_hours = sum(slot["end_hour"] - slot["start_hour"] for slot in section["timeslots"])
+            weekly_hours = sum(
+                slot["end_hour"] - slot["start_hour"] for slot in section["timeslots"]
+            )
             # Format timeslots as human-readable strings
             timeslot_strings = [
                 f"{slot['day'].name}: {slot['start_hour']:.0f}:00-{slot['end_hour']:.0f}:00"
@@ -238,8 +237,13 @@ def core_assign_section(section_id: str, teacher: str) -> dict[str, Any]:
     SCHEDULE_MANAGER.state.assignments[section_id].teacher_id = teacher_id
 
     return {
+        "success": True,
         "message": f"Successfully assigned {section_id} to {teacher_obj.name}",
-        "section_id": section_id,
-        "teacher": teacher_obj.name,
-        "new_load": f"{current_load + section_hours:.1f}/{teacher_obj.max_load_hours} hours",
+        "result": {
+            "section_id": section_id,
+            "teacher_id": teacher_id,
+            "teacher_name": teacher_obj.name,
+            "teacher_new_load": current_load + section_hours,
+            "section_hours": section_hours,
+        },
     }
