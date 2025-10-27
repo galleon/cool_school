@@ -22,6 +22,7 @@ from .core_tools import (
 )
 from .tool_responses import (
     AssignmentResponse,
+    AssignmentResult,
     LoadDistributionResponse,
     RebalancingResponse,
     ResetScheduleResponse,
@@ -118,8 +119,13 @@ async def assign_section(
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
     if "error" in result:
-        return AssignmentResponse(success=False, message=result["error"])
-    return AssignmentResponse(success=True, **result)
+        return AssignmentResponse(success=False, message=result["error"], result=None)
+    # Extract the nested result dict and flatten it into AssignmentResult
+    return AssignmentResponse(
+        success=True,
+        message=result["message"],
+        result=AssignmentResult(**result["result"])
+    )
 
 
 @function_tool(
