@@ -2,7 +2,7 @@
 
 These tools use LangChain's @tool decorator but are specifically designed
 for use with LangGraph agents. All tools return properly typed Pydantic models
-for type safety and validation.
+for type safety and validation. Thread context is managed via LangGraphContext.
 """
 
 from __future__ import annotations
@@ -32,6 +32,8 @@ from .langgraph_tool_inputs import (
     ShowViolationsInput,
     SwapInput,
 )
+from .langgraph_decorators import lg_tool
+from .run_langgraph_wrapper import RunLanggraphContextWrapper
 from .tool_responses import (
     AssignmentResponse,
     LoadDistributionResponse,
@@ -45,7 +47,8 @@ from .tool_responses import (
 
 
 @tool(args_schema=ShowScheduleOverviewInput)
-def show_schedule_overview(thread_id: str | None = None) -> dict:
+@lg_tool(description="Get an overview of the current schedule state including all teachers, sections, and assignments.")
+def show_schedule_overview(ctx: RunLanggraphContextWrapper | None = None) -> dict:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
     result = core_show_schedule_overview()
     # Return as dict for JSON serialization
@@ -60,7 +63,8 @@ def show_schedule_overview(thread_id: str | None = None) -> dict:
 
 
 @tool(args_schema=ShowLoadDistributionInput)
-def show_load_distribution(thread_id: str | None = None) -> dict:
+@lg_tool(description="Compute the teaching load per teacher and return a histogram image path + raw loads.")
+def show_load_distribution(ctx: RunLanggraphContextWrapper | None = None) -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
     response = LoadDistributionResponse(**result)
@@ -68,7 +72,8 @@ def show_load_distribution(thread_id: str | None = None) -> dict:
 
 
 @tool(args_schema=ShowViolationsInput)
-def show_violations(type: str, thread_id: str | None = None) -> dict:
+@lg_tool(description="Show violations of a given type: overload or conflict.")
+def show_violations(ctx: RunLanggraphContextWrapper | None = None, type: str = "") -> dict:
     """Show violations of a given type: overload or conflict."""
     result = core_show_violations(type)
     if "error" in result:
@@ -79,7 +84,8 @@ def show_violations(type: str, thread_id: str | None = None) -> dict:
 
 
 @tool(args_schema=RebalanceInput)
-def rebalance(max_load_hours: float = None, thread_id: str | None = None) -> dict:
+@lg_tool(description="Run optimal rebalancing using OR-Tools to minimize load variance.")
+def rebalance(ctx: RunLanggraphContextWrapper | None = None, max_load_hours: float = None) -> dict:
     """Run optimal rebalancing using OR-Tools to minimize load variance."""
     result = core_rebalance(max_load_hours)
     response = RebalancingResponse(**result)
@@ -87,7 +93,8 @@ def rebalance(max_load_hours: float = None, thread_id: str | None = None) -> dic
 
 
 @tool(args_schema=SwapInput)
-def swap(section_id: str, from_teacher: str, to_teacher: str, thread_id: str | None = None) -> dict:
+@lg_tool(description="Swap a section from one teacher to another by names or IDs.")
+def swap(ctx: RunLanggraphContextWrapper | None = None, section_id: str = "", from_teacher: str = "", to_teacher: str = "") -> dict:
     """Swap a section from one teacher to another by names or IDs."""
     result = core_swap(section_id, from_teacher, to_teacher)
     if "error" in result:
@@ -102,7 +109,8 @@ def swap(section_id: str, from_teacher: str, to_teacher: str, thread_id: str | N
 
 
 @tool(args_schema=ShowUnassignedInput)
-def show_unassigned(thread_id: str | None = None) -> dict:
+@lg_tool(description="Find all unassigned course sections that need teacher assignments.")
+def show_unassigned(ctx: RunLanggraphContextWrapper | None = None) -> dict:
     """Find all unassigned course sections that need teacher assignments."""
     result = core_show_unassigned()
     response = UnassignedResponse(**result)
@@ -110,7 +118,8 @@ def show_unassigned(thread_id: str | None = None) -> dict:
 
 
 @tool(args_schema=AssignSectionInput)
-def assign_section(section_id: str, teacher: str, thread_id: str | None = None) -> dict:
+@lg_tool(description="Assign an unassigned course section to a qualified teacher.")
+def assign_section(ctx: RunLanggraphContextWrapper | None = None, section_id: str = "", teacher: str = "") -> dict:
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
     if "error" in result:
