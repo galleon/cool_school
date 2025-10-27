@@ -187,6 +187,12 @@ Available tools:
 - show_unassigned: Find unassigned sections
 - assign_section: Assign a section to a teacher
 
+CRITICAL RULES FOR ASSIGNMENT REQUESTS:
+- BEFORE attempting to assign a section, ALWAYS call show_unassigned() to verify the section is actually unassigned
+- If a user requests to assign a section, first check if it's in the unassigned list
+- If the section is not unassigned, explain why you cannot assign it
+- Only call assign_section() after confirming the section is unassigned
+
 Guidelines:
 - For "schedule overview" or "teacher workloads", use show_schedule_overview
 - For "load distribution" or "histogram", use show_load_distribution
