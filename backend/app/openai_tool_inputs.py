@@ -1,9 +1,8 @@
-"""Input validation models for LangGraph tools.
+"""Input validation models for OpenAI ChatKit tools.
 
 These Pydantic models provide argument validation, type safety, and documentation
-for LangGraph tool functions. They mirror the input models used in openai_tool_inputs.py
-for consistency across agent backends, with the addition of optional thread_id fields
-for LangGraph's internal thread management.
+for OpenAI tool functions. They mirror the input models used in langgraph_tool_inputs.py
+for consistency across agent backends.
 """
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -14,15 +13,11 @@ class ShowScheduleOverviewInput(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
-
 
 class ShowLoadDistributionInput(BaseModel):
     """Input model for show_load_distribution tool."""
 
     model_config = ConfigDict(extra="forbid")
-
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
 
 
 class ShowViolationsInput(BaseModel):
@@ -35,7 +30,6 @@ class ShowViolationsInput(BaseModel):
         description="Type of violations to check: 'overload' (teacher exceeds max hours) or 'conflict' (teacher has scheduling conflicts)",
         pattern="^(overload|conflict)$",
     )
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
 
 
 class RebalanceInput(BaseModel):
@@ -48,7 +42,6 @@ class RebalanceInput(BaseModel):
         ge=0,
         description="Optional maximum teaching hours constraint for rebalancing (if None, uses teacher defaults)",
     )
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
 
 
 class SwapInput(BaseModel):
@@ -65,15 +58,12 @@ class SwapInput(BaseModel):
     to_teacher: str = Field(
         ..., min_length=1, description="Name or ID of the teacher to assign the section to"
     )
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
 
 
 class ShowUnassignedInput(BaseModel):
     """Input model for show_unassigned tool."""
 
     model_config = ConfigDict(extra="forbid")
-
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")
 
 
 class AssignSectionInput(BaseModel):
@@ -87,4 +77,3 @@ class AssignSectionInput(BaseModel):
     teacher: str = Field(
         ..., min_length=1, description="Name or ID of the teacher to assign the section to"
     )
-    thread_id: str | None = Field(None, description="LangGraph thread ID (internal use)")

@@ -1,55 +1,33 @@
-"""OpenAI ChatKit tool wrappers for university schedule management."""
+"""OpenAI ChatKit tool wrappers for university schedule management.
+
+These tools use ChatKit's @function_tool decorator and are specifically designed
+for use with OpenAI-based agents. All tools return properly typed Pydantic models
+for type safety and validation.
+"""
 
 from __future__ import annotations
 
-from typing import Any
-
 from agents import RunContextWrapper, function_tool
 from chatkit.agents import AgentContext
-from pydantic import BaseModel, Field
 
 from .core_tools import (
-    core_show_schedule_overview,
-    core_show_load_distribution,
-    core_show_violations,
-    core_rebalance,
-    core_swap,
-    core_show_unassigned,
     core_assign_section,
+    core_rebalance,
+    core_show_load_distribution,
+    core_show_schedule_overview,
+    core_show_unassigned,
+    core_show_violations,
+    core_swap,
 )
 from .tool_responses import (
-    ScheduleOverviewResponse,
+    AssignmentResponse,
     LoadDistributionResponse,
-    ViolationsResponse,
     RebalancingResponse,
+    ScheduleOverviewResponse,
     SwapResponse,
     UnassignedResponse,
-    AssignmentResponse,
+    ViolationsResponse,
 )
-
-
-# Input validation models for OpenAI tools
-class ViolationInput(BaseModel):
-    type: str = Field(
-        description="Type of violations: overload or conflict", pattern="^(overload|conflict)$"
-    )
-
-
-class RebalanceInput(BaseModel):
-    max_load_hours: float | None = Field(
-        default=None, description="Optional max load hours constraint"
-    )
-
-
-class SwapInput(BaseModel):
-    section_id: str = Field(description="ID of the section to swap")
-    from_teacher: str = Field(description="Name or ID of the current teacher")
-    to_teacher: str = Field(description="Name or ID of the new teacher")
-
-
-class AssignInput(BaseModel):
-    section_id: str = Field(description="ID of the section to assign")
-    teacher: str = Field(description="Name or ID of the teacher to assign the section to")
 
 
 # OpenAI ChatKit tool functions
