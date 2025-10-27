@@ -3,6 +3,7 @@
 Provides an object similar to RunContextWrapper used by OpenAI tools so tool
 functions can access contextual metadata (thread_id, stores, etc.).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

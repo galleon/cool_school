@@ -23,7 +23,7 @@ from .core_tools import (
     core_show_violations,
     core_swap,
 )
-from .langgraph_tool_inputs import (
+from .tool_inputs import (
     AssignSectionInput,
     RebalanceInput,
     ShowLoadDistributionInput,
@@ -47,7 +47,9 @@ from .tool_responses import (
 
 
 @tool(args_schema=ShowScheduleOverviewInput)
-@lg_tool(description="Get an overview of the current schedule state including all teachers, sections, and assignments.")
+@lg_tool(
+    description="Get an overview of the current schedule state including all teachers, sections, and assignments."
+)
 def show_schedule_overview(ctx: RunLanggraphContextWrapper | None = None) -> dict:
     """Get an overview of the current schedule state including all teachers, sections, and assignments."""
     result = core_show_schedule_overview()
@@ -63,7 +65,9 @@ def show_schedule_overview(ctx: RunLanggraphContextWrapper | None = None) -> dic
 
 
 @tool(args_schema=ShowLoadDistributionInput)
-@lg_tool(description="Compute the teaching load per teacher and return a histogram image path + raw loads.")
+@lg_tool(
+    description="Compute the teaching load per teacher and return a histogram image path + raw loads."
+)
 def show_load_distribution(ctx: RunLanggraphContextWrapper | None = None) -> dict:
     """Compute the teaching load per teacher and return a histogram image path + raw loads."""
     result = core_show_load_distribution()
@@ -94,7 +98,12 @@ def rebalance(ctx: RunLanggraphContextWrapper | None = None, max_load_hours: flo
 
 @tool(args_schema=SwapInput)
 @lg_tool(description="Swap a section from one teacher to another by names or IDs.")
-def swap(ctx: RunLanggraphContextWrapper | None = None, section_id: str = "", from_teacher: str = "", to_teacher: str = "") -> dict:
+def swap(
+    ctx: RunLanggraphContextWrapper | None = None,
+    section_id: str = "",
+    from_teacher: str = "",
+    to_teacher: str = "",
+) -> dict:
     """Swap a section from one teacher to another by names or IDs."""
     result = core_swap(section_id, from_teacher, to_teacher)
     if "error" in result:
@@ -119,7 +128,9 @@ def show_unassigned(ctx: RunLanggraphContextWrapper | None = None) -> dict:
 
 @tool(args_schema=AssignSectionInput)
 @lg_tool(description="Assign an unassigned course section to a qualified teacher.")
-def assign_section(ctx: RunLanggraphContextWrapper | None = None, section_id: str = "", teacher: str = "") -> dict:
+def assign_section(
+    ctx: RunLanggraphContextWrapper | None = None, section_id: str = "", teacher: str = ""
+) -> dict:
     """Assign an unassigned course section to a qualified teacher."""
     result = core_assign_section(section_id, teacher)
     if "error" in result:

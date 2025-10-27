@@ -4,6 +4,7 @@ Register functions (the real Python callables) so the LangGraph agent can call
 them directly while the same functions stay wrapped with LangChain's @tool
 for LangChain/LangGraph integration.
 """
+
 from __future__ import annotations
 
 from typing import Callable, Optional

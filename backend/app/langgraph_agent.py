@@ -88,27 +88,52 @@ class StreamingLangGraphUniversityAgent:
             thread_id = state["thread_id"]
 
             for tool_call in last_message.tool_calls:
-                    # Find and execute the tool
-                    tool_name = tool_call["name"]
-                    tool_args = tool_call.get("args", {})
+                # Find and execute the tool
+                tool_name = tool_call["name"]
+                tool_args = tool_call.get("args", {})
 
-                    # Log tool call
-                    logger.info(
-                        f"Tool call [thread_id: {thread_id}]: {tool_name} with args: {tool_args}"
-                    )
+                # Log tool call
+                logger.info(
+                    f"Tool call [thread_id: {thread_id}]: {tool_name} with args: {tool_args}"
+                )
 
-                    # Prefer calling the registered python function directly (if present)
-                    registered_fn = get_lg_tool_fn(tool_name)
-                    if registered_fn:
+                # Prefer calling the registered python function directly (if present)
+                registered_fn = get_lg_tool_fn(tool_name)
+                if registered_fn:
+                    try:
+                        ctx = RunLanggraphContextWrapper.from_thread_id(thread_id)
+                        # Call the underlying function with context and args
+                        result = registered_fn(ctx, **tool_args)
+                        logger.info(
+                            f"Tool result [thread_id: {thread_id}]: {tool_name} returned: {result}"
+                        )
+                        tool_responses.append(
+                            ToolMessage(
+                                content=json.dumps(result), tool_call_id=tool_call.get("id")
+                            )
+                        )
+                    except Exception as e:
+                        error_msg = f"Error: {str(e)}"
+                        logger.error(
+                            f"Tool error [thread_id: {thread_id}]: {tool_name} failed: {error_msg}"
+                        )
+                        tool_responses.append(
+                            ToolMessage(content=error_msg, tool_call_id=tool_call.get("id"))
+                        )
+                    continue
+
+                # Fallback: call LangChain-wrapped tool (existing behavior)
+                for tool_func in self.tools:
+                    if getattr(tool_func, "name", None) == tool_name:
                         try:
-                            ctx = RunLanggraphContextWrapper.from_thread_id(thread_id)
-                            # Call the underlying function with context and args
-                            result = registered_fn(ctx, **tool_args)
+                            result = tool_func.invoke(tool_args)
                             logger.info(
                                 f"Tool result [thread_id: {thread_id}]: {tool_name} returned: {result}"
                             )
                             tool_responses.append(
-                                ToolMessage(content=json.dumps(result), tool_call_id=tool_call.get("id"))
+                                ToolMessage(
+                                    content=json.dumps(result), tool_call_id=tool_call.get("id")
+                                )
                             )
                         except Exception as e:
                             error_msg = f"Error: {str(e)}"
@@ -118,30 +143,7 @@ class StreamingLangGraphUniversityAgent:
                             tool_responses.append(
                                 ToolMessage(content=error_msg, tool_call_id=tool_call.get("id"))
                             )
-                        continue
-
-                    # Fallback: call LangChain-wrapped tool (existing behavior)
-                    for tool_func in self.tools:
-                        if getattr(tool_func, "name", None) == tool_name:
-                            try:
-                                result = tool_func.invoke(tool_args)
-                                logger.info(
-                                    f"Tool result [thread_id: {thread_id}]: {tool_name} returned: {result}"
-                                )
-                                tool_responses.append(
-                                    ToolMessage(
-                                        content=json.dumps(result), tool_call_id=tool_call.get("id")
-                                    )
-                                )
-                            except Exception as e:
-                                error_msg = f"Error: {str(e)}"
-                                logger.error(
-                                    f"Tool error [thread_id: {thread_id}]: {tool_name} failed: {error_msg}"
-                                )
-                                tool_responses.append(
-                                    ToolMessage(content=error_msg, tool_call_id=tool_call.get("id"))
-                                )
-                            break
+                        break
 
             return {"messages": tool_responses}
 

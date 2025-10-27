@@ -13,7 +13,7 @@ from typing import Any
 @dataclass
 class LangGraphContext:
     """Context wrapper for LangGraph tool execution.
-    
+
     Holds thread metadata and other contextual information needed by tools,
     similar to how OpenAI's RunContextWrapper works.
     """

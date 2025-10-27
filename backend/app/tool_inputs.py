@@ -1,8 +1,8 @@
-"""Input validation models for LangGraph tools.
+"""Input validation models for tool functions.
 
 These Pydantic models provide argument validation, type safety, and documentation
-for LangGraph tool functions. They are identical to openai_tool_inputs.py to maintain
-consistency across agent backends. Thread context is managed separately via LangGraphContext.
+for both OpenAI and LangGraph tool functions. They are shared across all agent backends
+to maintain consistency.
 """
 
 from pydantic import BaseModel, ConfigDict, Field
