@@ -83,4 +83,3 @@ class ResetScheduleInput(BaseModel):
     """Input model for reset_schedule tool."""
 
     model_config = ConfigDict(extra="forbid")
-
