@@ -247,3 +247,8 @@ def core_assign_section(section_id: str, teacher: str) -> dict[str, Any]:
             "section_hours": section_hours,
         },
     }
+
+
+def core_reset_schedule() -> dict[str, Any]:
+    """Core logic for resetting the schedule to initial state."""
+    return SCHEDULE_MANAGER.reset_schedule()

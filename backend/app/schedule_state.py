@@ -457,6 +457,15 @@ class ScheduleManager:
                 total_hours += section.compute_weekly_hours()
         return total_hours
 
+    def reset_schedule(self) -> dict[str, Any]:
+        """Reset the schedule to its initial state with sample data."""
+        self.state = ScheduleState()
+        self._initialize_sample_data()
+        return {
+            "success": True,
+            "message": "Schedule has been reset to its initial state",
+        }
+
 
 # Global instance
 SCHEDULE_MANAGER = ScheduleManager()

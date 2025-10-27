@@ -13,6 +13,7 @@ from chatkit.agents import AgentContext
 from .core_tools import (
     core_assign_section,
     core_rebalance,
+    core_reset_schedule,
     core_show_load_distribution,
     core_show_schedule_overview,
     core_show_unassigned,
@@ -23,6 +24,7 @@ from .tool_responses import (
     AssignmentResponse,
     LoadDistributionResponse,
     RebalancingResponse,
+    ResetScheduleResponse,
     ScheduleOverviewResponse,
     SwapResponse,
     UnassignedResponse,
@@ -120,6 +122,17 @@ async def assign_section(
     return AssignmentResponse(success=True, **result)
 
 
+@function_tool(
+    description_override="Reset the entire schedule to its initial state with sample data.",
+)
+async def reset_schedule(
+    ctx: RunContextWrapper[AgentContext],
+) -> ResetScheduleResponse:
+    """Reset the entire schedule to its initial state with sample data."""
+    result = core_reset_schedule()
+    return ResetScheduleResponse(**result)
+
+
 # Export all tools in a list for easy import
 OPENAI_TOOLS = [
     show_schedule_overview,
@@ -129,4 +142,5 @@ OPENAI_TOOLS = [
     swap,
     show_unassigned,
     assign_section,
+    reset_schedule,
 ]

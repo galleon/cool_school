@@ -77,3 +77,10 @@ class AssignSectionInput(BaseModel):
     teacher: str = Field(
         ..., min_length=1, description="Name or ID of the teacher to assign the section to"
     )
+
+
+class ResetScheduleInput(BaseModel):
+    """Input model for reset_schedule tool."""
+
+    model_config = ConfigDict(extra="forbid")
+

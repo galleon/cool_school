@@ -17,6 +17,7 @@ except ImportError:
 from .core_tools import (
     core_assign_section,
     core_rebalance,
+    core_reset_schedule,
     core_show_load_distribution,
     core_show_schedule_overview,
     core_show_unassigned,
@@ -26,6 +27,7 @@ from .core_tools import (
 from .tool_inputs import (
     AssignSectionInput,
     RebalanceInput,
+    ResetScheduleInput,
     ShowLoadDistributionInput,
     ShowScheduleOverviewInput,
     ShowUnassignedInput,
@@ -42,6 +44,7 @@ from .tool_responses import (
     AssignmentResponse,
     LoadDistributionResponse,
     RebalancingResponse,
+    ResetScheduleResponse,
     ScheduleOverviewResponse,
     SwapResponse,
     TeacherLoadInfo,
@@ -157,6 +160,17 @@ def assign_section(
     return response.model_dump(mode="json")
 
 
+@lg_function_tool(
+    args_schema=ResetScheduleInput,
+    description="Reset the entire schedule to its initial state with sample data.",
+)
+def reset_schedule(ctx: RunLanggraphContextWrapper["AgentContext"]) -> dict:
+    """Reset the entire schedule to its initial state with sample data."""
+    result = core_reset_schedule()
+    response = ResetScheduleResponse(**result)
+    return response.model_dump(mode="json")
+
+
 # Export all tools in a list for easy import
 UNIVERSITY_TOOLS = [
     show_schedule_overview,
@@ -166,4 +180,5 @@ UNIVERSITY_TOOLS = [
     swap,
     show_unassigned,
     assign_section,
+    reset_schedule,
 ]

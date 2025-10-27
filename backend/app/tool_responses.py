@@ -196,6 +196,15 @@ class ToolErrorResponse(BaseModel):
     error_type: str | None = Field(None, description="Type of error")
 
 
+class ResetScheduleResponse(BaseModel):
+    """Response model for reset_schedule tool."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    success: bool = Field(..., description="Whether reset was successful")
+    message: str = Field(..., min_length=1, description="Status message")
+
+
 # Union type for all possible tool responses
 ToolResponse = (
     ScheduleOverviewResponse
@@ -205,6 +214,7 @@ ToolResponse = (
     | SwapResponse
     | UnassignedResponse
     | AssignmentResponse
+    | ResetScheduleResponse
     | ToolErrorResponse
 )
 
