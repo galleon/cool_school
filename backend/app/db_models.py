@@ -2,10 +2,64 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+
+
+class Thread(Base):
+    """Chat thread model."""
+
+    __tablename__ = "threads"
+
+    id = Column(String, primary_key=True, index=True)
+    title = Column(String, nullable=True)
+    metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    items = relationship("ThreadItem", back_populates="thread", cascade="all, delete-orphan")
+
+
+class ThreadItem(Base):
+    """Chat message/item in a thread."""
+
+    __tablename__ = "thread_items"
+
+    id = Column(String, primary_key=True, index=True)
+    thread_id = Column(String, ForeignKey("threads.id"), index=True)
+    role = Column(String)  # user, assistant, system, tool
+    content = Column(Text)
+    item_type = Column(String)  # UserMessageItem, TextContentPart, etc.
+    metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    thread = relationship("Thread", back_populates="items")
+    tool_calls = relationship("ToolCall", back_populates="item", cascade="all, delete-orphan")
+
+
+class ToolCall(Base):
+    """Tool invocation record."""
+
+    __tablename__ = "tool_calls"
+
+    id = Column(String, primary_key=True, index=True)
+    item_id = Column(String, ForeignKey("thread_items.id"), index=True)
+    tool_name = Column(String, index=True)
+    input_args = Column(JSON)  # Arguments passed to the tool
+    output = Column(JSON)  # Tool result/response
+    status = Column(String, default="pending")  # pending, success, error
+    error_message = Column(Text, nullable=True)
+    execution_time_ms = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    item = relationship("ThreadItem", back_populates="tool_calls")
 
 
 class Teacher(Base):
@@ -136,4 +190,9 @@ class ScheduleChange(Base):
     section_id = Column(String, nullable=True, index=True)
     old_teacher_id = Column(String, nullable=True)
     new_teacher_id = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    thread_id = Column(String, ForeignKey("threads.id"), nullable=True)  # Link to chat thread
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    # Relationships
+    thread = relationship("Thread")
+
