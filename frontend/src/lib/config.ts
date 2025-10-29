@@ -24,7 +24,7 @@ export const SCHEDULE_STATE_URL =
 
 export const SCHEDULE_GREETING =
     import.meta.env.VITE_SCHEDULE_GREETING ??
-    "Welcome to the Academic Scheduling Assistant. How can I help you with course scheduling and teacher assignments today?";
+    "Welcome! How can I help with course scheduling today?";
 
 export const SCHEDULE_STARTER_PROMPTS: StartScreenPrompt[] = [
     {

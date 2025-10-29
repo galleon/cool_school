@@ -122,9 +122,7 @@ async def assign_section(
         return AssignmentResponse(success=False, message=result["error"], result=None)
     # Extract the nested result dict and flatten it into AssignmentResult
     return AssignmentResponse(
-        success=True,
-        message=result["message"],
-        result=AssignmentResult(**result["result"])
+        success=True, message=result["message"], result=AssignmentResult(**result["result"])
     )
 
 
