@@ -24,7 +24,8 @@ from starlette.responses import JSONResponse
 from chatkit.server import ChatKitServer, StreamingResult
 
 from .schedule_state import SCHEDULE_MANAGER
-from .memory_store import MemoryStore
+from .postgres_store import PostgreSQLStore
+from .database import SessionLocal
 from .langgraph_agent import langgraph_agent
 from .routers import schedule_router
 
@@ -158,9 +159,11 @@ class LangGraphChatKitAdapter:
 
 class LangGraphSchedulingServer(ChatKitServer[dict[str, Any]]):
     def __init__(self) -> None:
-        store = MemoryStore()
+        db_session = SessionLocal()
+        store = PostgreSQLStore(db_session)
         super().__init__(store)
         self.store = store
+        self.db_session = db_session
         self.adapter = LangGraphChatKitAdapter()
 
     def _resolve_thread_id(self, thread: ThreadMetadata | None) -> str:
