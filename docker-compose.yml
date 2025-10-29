@@ -1,4 +1,22 @@
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: coolschool
+      POSTGRES_PASSWORD: coolschool_password
+      POSTGRES_DB: coolschool_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coolschool"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # Backend API
   backend:
     build:
@@ -9,11 +27,15 @@ services:
     environment:
       - AGENT_BACKEND=${AGENT_BACKEND:-langgraph}
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://coolschool:coolschool_password@postgres:5432/coolschool_db
     ports:
       - "8001:8001"
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8001
     restart: unless-stopped
 
@@ -39,3 +61,4 @@ services:
 
 volumes:
   backend_venv:
+  postgres_data:
