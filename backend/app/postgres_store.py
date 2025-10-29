@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 
 from chatkit.store import NotFoundError, Store
-from chatkit.types import Attachment, Page, TextContentPart, Thread, ThreadItem, ThreadMetadata, UserMessageItem
+from chatkit.types import Attachment, Page, Thread, ThreadItem, ThreadMetadata, UserMessageItem, UserMessageTextContent, InferenceOptions
 from sqlalchemy.orm import Session
 
 from app.db_models import Thread as ThreadDB
@@ -137,7 +137,7 @@ class PostgreSQLStore(Store[dict[str, Any]]):
             role=getattr(item, "role", "assistant"),
             content=self._item_to_content(item),
             item_type=item.__class__.__name__,
-            metadata=item.model_dump() if hasattr(item, "model_dump") else {},
+            item_data=item.model_dump() if hasattr(item, "model_dump") else {},
         )
         self.db.add(item_db)
         self.db.commit()
@@ -147,7 +147,7 @@ class PostgreSQLStore(Store[dict[str, Any]]):
 
         if item_db:
             item_db.content = self._item_to_content(item)
-            item_db.metadata = item.model_dump() if hasattr(item, "model_dump") else {}
+            item_db.item_data = item.model_dump() if hasattr(item, "model_dump") else {}
             item_db.updated_at = datetime.utcnow()
         else:
             item_db = ThreadItemDB(
@@ -156,7 +156,7 @@ class PostgreSQLStore(Store[dict[str, Any]]):
                 role=getattr(item, "role", "assistant"),
                 content=self._item_to_content(item),
                 item_type=item.__class__.__name__,
-                metadata=item.model_dump() if hasattr(item, "model_dump") else {},
+                item_data=item.model_dump() if hasattr(item, "model_dump") else {},
             )
             self.db.add(item_db)
 
@@ -223,12 +223,14 @@ class PostgreSQLStore(Store[dict[str, Any]]):
 
     def _db_item_to_model(self, item_db: ThreadItemDB) -> ThreadItem:
         """Convert database model back to ThreadItem."""
-        if item_db.metadata:
-            return UserMessageItem(**item_db.metadata)
+        if item_db.item_data:
+            return UserMessageItem(**item_db.item_data)
 
-        # Fallback
+        # Fallback: construct UserMessageItem from basic fields
         return UserMessageItem(
             id=item_db.id,
-            content=[TextContentPart(text=item_db.content or "")],
+            thread_id=item_db.thread_id,
+            content=[UserMessageTextContent(text=item_db.content or "")],
             created_at=item_db.created_at,
+            inference_options=InferenceOptions(),
         )

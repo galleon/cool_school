@@ -19,12 +19,14 @@ from fastapi.responses import Response, StreamingResponse
 from openai.types.responses import ResponseInputContentParam
 from starlette.responses import JSONResponse
 
-from .config import settings
-
-from .memory_store import MemoryStore
-from .openai_agent import scheduling_agent
-from .routers import schedule_router
 from .agent_utils import format_schedule_context
+from .config import settings
+from .database import SessionLocal
+from .openai_agent import scheduling_agent
+from .postgres_store import PostgreSQLStore
+from .routers import schedule_router
+
+DEFAULT_THREAD_ID = "demo_default_thread"
 
 DEFAULT_THREAD_ID = "demo_default_thread"
 
@@ -49,9 +51,11 @@ def _is_tool_completion_item(item: Any) -> bool:
 
 class SchedulingServer(ChatKitServer[dict[str, Any]]):
     def __init__(self) -> None:
-        store = MemoryStore()
+        db_session = SessionLocal()
+        store = PostgreSQLStore(db_session)
         super().__init__(store)
         self.store = store
+        self.db_session = db_session
         self.agent = scheduling_agent
 
     def _resolve_thread_id(self, thread: ThreadMetadata | None) -> str:

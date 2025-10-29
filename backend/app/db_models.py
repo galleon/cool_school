@@ -15,7 +15,7 @@ class Thread(Base):
 
     id = Column(String, primary_key=True, index=True)
     title = Column(String, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    thread_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -33,7 +33,7 @@ class ThreadItem(Base):
     role = Column(String)  # user, assistant, system, tool
     content = Column(Text)
     item_type = Column(String)  # UserMessageItem, TextContentPart, etc.
-    metadata = Column(JSON, nullable=True)
+    item_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
