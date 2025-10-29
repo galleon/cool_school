@@ -1,7 +1,7 @@
 """PostgreSQL-backed ChatKit Store implementation."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 
 from chatkit.store import NotFoundError, Store
 from chatkit.types import Attachment, Page, Thread, ThreadItem, ThreadMetadata, UserMessageItem, UserMessageTextContent, InferenceOptions
@@ -14,8 +14,19 @@ from app.db_models import ThreadItem as ThreadItemDB
 class PostgreSQLStore(Store[dict[str, Any]]):
     """PostgreSQL-backed Store for ChatKit chat history and metadata."""
 
-    def __init__(self, db_session: Session):
-        self.db = db_session
+    def __init__(self, session_factory: Callable[[], Session] | Session):
+        """Initialize store with either a session factory or a session."""
+        if callable(session_factory):
+            self.session_factory = session_factory
+        else:
+            # If a session is passed, wrap it in a callable that returns it
+            session = session_factory
+            self.session_factory = lambda: session
+
+    @property
+    def db(self) -> Session:
+        """Get a fresh database session."""
+        return self.session_factory()
 
     @staticmethod
     def _coerce_thread_metadata(thread: ThreadMetadata | Thread) -> ThreadMetadata:
@@ -32,15 +43,19 @@ class PostgreSQLStore(Store[dict[str, Any]]):
 
     # -- Thread metadata -------------------------------------------------
     async def load_thread(self, thread_id: str, context: dict[str, Any]) -> ThreadMetadata:
-        thread_db = self.db.query(ThreadDB).filter(ThreadDB.id == thread_id).first()
-        if not thread_db:
-            raise NotFoundError(f"Thread {thread_id} not found")
+        try:
+            thread_db = self.db.query(ThreadDB).filter(ThreadDB.id == thread_id).first()
+            if not thread_db:
+                raise NotFoundError(f"Thread {thread_id} not found")
 
-        return ThreadMetadata(
-            id=thread_db.id,
-            created_at=thread_db.created_at,
-            title=thread_db.title,
-        )
+            return ThreadMetadata(
+                id=thread_db.id,
+                created_at=thread_db.created_at,
+                title=thread_db.title,
+            )
+        except Exception:
+            self.db.rollback()
+            raise
 
     async def save_thread(self, thread: ThreadMetadata, context: dict[str, Any]) -> None:
         metadata = self._coerce_thread_metadata(thread)

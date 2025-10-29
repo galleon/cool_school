@@ -224,6 +224,10 @@ def get_app():
     Returns:
         FastAPI application instance for the selected backend.
     """
+    # Initialize database tables on startup
+    from .database import init_db
+    init_db()
+    
     settings = get_app_settings()
 
     if settings.agent_backend == "openai":

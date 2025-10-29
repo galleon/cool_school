@@ -159,11 +159,9 @@ class LangGraphChatKitAdapter:
 
 class LangGraphSchedulingServer(ChatKitServer[dict[str, Any]]):
     def __init__(self) -> None:
-        db_session = SessionLocal()
-        store = PostgreSQLStore(db_session)
+        store = PostgreSQLStore(SessionLocal)
         super().__init__(store)
         self.store = store
-        self.db_session = db_session
         self.adapter = LangGraphChatKitAdapter()
 
     def _resolve_thread_id(self, thread: ThreadMetadata | None) -> str:
