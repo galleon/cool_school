@@ -22,11 +22,28 @@ class PostgreSQLStore(Store[dict[str, Any]]):
             # If a session is passed, wrap it in a callable that returns it
             session = session_factory
             self.session_factory = lambda: session
+        # Keep a cached session for the current request
+        self._current_session: Session | None = None
+
+    def _get_session(self) -> Session:
+        """Get or create a session for the current operation."""
+        if self._current_session is None:
+            self._current_session = self.session_factory()
+        return self._current_session
+
+    def _reset_session(self) -> None:
+        """Reset the cached session after operation completes."""
+        if self._current_session is not None:
+            try:
+                self._current_session.close()
+            except Exception:
+                pass
+            self._current_session = None
 
     @property
     def db(self) -> Session:
-        """Get a fresh database session."""
-        return self.session_factory()
+        """Get the database session for current operation."""
+        return self._get_session()
 
     @staticmethod
     def _coerce_thread_metadata(thread: ThreadMetadata | Thread) -> ThreadMetadata:
