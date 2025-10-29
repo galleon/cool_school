@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 import json
 
@@ -25,7 +26,7 @@ from chatkit.server import ChatKitServer, StreamingResult
 
 from .schedule_state import SCHEDULE_MANAGER
 from .postgres_store import PostgreSQLStore
-from .database import SessionLocal
+from .database import SessionLocal, init_db
 from .langgraph_agent import langgraph_agent
 from .routers import schedule_router
 
@@ -196,7 +197,18 @@ class LangGraphSchedulingServer(ChatKitServer[dict[str, Any]]):
 
 langgraph_scheduling_server = LangGraphSchedulingServer()
 
-app = FastAPI(title="LangGraph Academic Scheduling API", debug=settings.DEBUG)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan context manager for startup and shutdown."""
+    # Startup: Initialize database tables
+    init_db()
+    yield
+    # Shutdown: Cleanup if needed
+    pass
+
+
+app = FastAPI(title="LangGraph Academic Scheduling API", debug=settings.DEBUG, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

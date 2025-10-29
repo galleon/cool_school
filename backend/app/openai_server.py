@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
 from agents import RunConfig, Runner
@@ -13,7 +14,7 @@ from chatkit.types import (
     ThreadStreamEvent,
     UserMessageItem,
 )
-from fastapi import Depends, FastAPI, Query, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from openai.types.responses import ResponseInputContentParam
@@ -21,7 +22,7 @@ from starlette.responses import JSONResponse
 
 from .agent_utils import format_schedule_context
 from .config import settings
-from .database import SessionLocal
+from .database import SessionLocal, init_db
 from .openai_agent import scheduling_agent
 from .postgres_store import PostgreSQLStore
 from .routers import schedule_router
@@ -102,7 +103,18 @@ class SchedulingServer(ChatKitServer[dict[str, Any]]):
 
 scheduling_server = SchedulingServer()
 
-app = FastAPI(title="ChatKit Academic Scheduling API", debug=settings.DEBUG)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan context manager for startup and shutdown."""
+    # Startup: Initialize database tables
+    init_db()
+    yield
+    # Shutdown: Cleanup if needed
+    pass
+
+
+app = FastAPI(title="ChatKit Academic Scheduling API", debug=settings.DEBUG, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
