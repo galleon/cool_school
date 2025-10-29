@@ -129,19 +129,19 @@ export function LandingPage({ scheme, onThemeChange }: LandingPageProps) {
                                 icon: "⚡",
                                 title: "Smart Scheduling",
                                 description:
-                                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Our AI automatically optimizes course schedules to minimize conflicts.",
+                                    "Our AI-powered system automatically optimizes course schedules to eliminate time conflicts and ensure efficient resource utilization. By analyzing teacher qualifications, course requirements, and time constraints, we create schedules that work for everyone.",
                             },
                             {
                                 icon: "👥",
                                 title: "Teacher Load Balance",
                                 description:
-                                    "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ensure fair distribution of teaching workloads across faculty.",
+                                    "Ensure fair and equitable distribution of teaching workloads across your faculty. Our intelligent algorithms monitor teaching hours, course assignments, and qualifications to prevent burnout and maintain work-life balance while meeting institutional needs.",
                             },
                             {
                                 icon: "📊",
                                 title: "Real-time Analytics",
                                 description:
-                                    "Ut enim ad minim veniam, quis nostrud exercitation ullamco. Track scheduling metrics and course assignments in real-time.",
+                                    "Get instant visibility into your scheduling metrics, teacher utilization rates, and course assignments. Track changes in real-time, identify potential overloads before they happen, and make data-driven decisions to improve your academic operations.",
                             },
                         ].map((feature, index) => (
                             <div
@@ -155,7 +155,7 @@ export function LandingPage({ scheme, onThemeChange }: LandingPageProps) {
                             >
                                 <div className="mb-4 text-4xl">{feature.icon}</div>
                                 <h3 className="mb-3 text-xl font-semibold">{feature.title}</h3>
-                                <p className="text-slate-600 dark:text-slate-300">
+                                <p className="justify-normal text-justify text-slate-600 dark:text-slate-300">
                                     {feature.description}
                                 </p>
                             </div>
@@ -174,20 +174,22 @@ export function LandingPage({ scheme, onThemeChange }: LandingPageProps) {
                                 : "border-blue-100 bg-white",
                         )}
                     >
-                        <p className="mb-4 text-lg text-slate-600 dark:text-slate-300">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-                            nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                        <p className="mb-4 text-justify text-lg text-slate-600 dark:text-slate-300">
+                            Cool School is a demonstration project showcasing the power of agentic AI in real-world applications. 
+                            Built to illustrate how intelligent agents can automate complex scheduling tasks, this platform combines 
+                            cutting-edge AI technology with practical problem-solving for academic institutions.
                         </p>
-                        <p className="mb-4 text-lg text-slate-600 dark:text-slate-300">
-                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                            culpa qui officia deserunt mollit anim id est laborum.
+                        <p className="mb-4 text-justify text-lg text-slate-600 dark:text-slate-300">
+                            At its core, Cool School demonstrates how conversational AI agents can understand natural language requests 
+                            and autonomously execute sophisticated operations. Users can chat with our intelligent assistant to manage 
+                            course schedules, balance teacher workloads, resolve conflicts, and optimize resource allocation—all through 
+                            natural conversation rather than complex interfaces.
                         </p>
-                        <p className="text-lg text-slate-600 dark:text-slate-300">
-                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-                            doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                            veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+                        <p className="text-justify text-lg text-slate-600 dark:text-slate-300">
+                            This project exemplifies the potential of agentic AI to transform how we approach administrative tasks, 
+                            making complex operations accessible and intuitive. Whether you're managing an academic institution or 
+                            exploring AI capabilities, Cool School demonstrates how intelligent agents and chat interfaces can work 
+                            together to solve real problems efficiently and elegantly.
                         </p>
                     </div>
                 </section>
